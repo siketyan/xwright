@@ -1,4 +1,3 @@
-import "./devices.ts";
 import { test, use } from "xwright";
 
 // Runs in every project, as they all have the web.

@@ -1,4 +1,3 @@
-import "./devices.ts";
 import { step, test, use } from "xwright";
 
 // Runs in the projects with both devices, "android" and "ios", and is skipped in "web-only".
