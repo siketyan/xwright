@@ -41,7 +41,9 @@ jobs:
       - name: Run the example on the web and an Android emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
-          api-level: 35
+          api-level: "37.0"
           target: google_apis
           arch: x86_64
+          # A small screen at a low density renders faster, and still shows the whole page of the tests.
+          pre-emulator-launch-script: printf 'hw.lcd.width=480\nhw.lcd.height=800\nhw.lcd.density=160\n' >> "${ANDROID_AVD_HOME:-$HOME/.android/avd}/test.avd/config.ini"
           script: pnpm --filter example-web-and-mobile test --project android --project web-only
