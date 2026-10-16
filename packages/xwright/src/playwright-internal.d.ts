@@ -42,6 +42,8 @@ declare module "playwright/lib/runner" {
 		projectFilter?: string[];
 		passWithNoTests?: boolean;
 		lastFailed?: boolean;
+		testList?: string;
+		testListInvert?: string;
 	}
 
 	export const testRunner: {

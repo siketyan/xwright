@@ -8,15 +8,21 @@ import {
 	SHOW_USAGE,
 	TEST_USAGE,
 	USAGE,
+	withoutUiArgs,
 } from "./args.js";
 import { openTrace, serveTrace } from "./trace/server.js";
 import { findTraces, zipDirectory } from "./trace/zip.js";
+import { UiRunner } from "./ui/runner.js";
+import { serveRunner } from "./ui/server.js";
 
 async function test(args: string[]): Promise<number> {
 	const parsed = parseTestArgs(args);
 	if (parsed === "help") {
 		console.log(TEST_USAGE);
 		return 0;
+	}
+	if (parsed.ui !== undefined) {
+		return await testUi(withoutUiArgs(args), parsed.ui);
 	}
 
 	// Playwright Test has no public API to run tests, so call the internal one that `playwright test` calls, as
@@ -29,6 +35,25 @@ async function test(args: string[]): Promise<number> {
 	);
 	const status = await testRunner.runAllTestsWithConfig(config, parsed.options);
 	return status === "interrupted" ? 130 : status === "passed" ? 0 : 1;
+}
+
+/** Serves the UI, which lists the tests and runs them, each run in a new `xwright test`. */
+async function testUi(
+	args: string[],
+	options: { host?: string; port?: number },
+): Promise<number> {
+	const runner = new UiRunner(args);
+	await runner.list();
+	const { url } = await serveRunner(runner, options);
+	console.log(`Serving the UI at ${url}\nPress Ctrl+C to stop.`);
+	return await new Promise<number>((resolve) => {
+		const stop = () => {
+			runner.stop();
+			resolve(0);
+		};
+		process.once("SIGINT", stop);
+		process.once("SIGTERM", stop);
+	});
 }
 
 function exportTrace(args: string[]): number {

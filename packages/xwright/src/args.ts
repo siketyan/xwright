@@ -135,7 +135,12 @@ Options:
   --retries <retries>         Maximum retry count for flaky tests
   --shard <shard>             Shard tests and execute only the selected shard, e.g. "1/3"
   --timeout <timeout>         Test timeout threshold in milliseconds
+  --test-list <file>          Path to a file containing a list of tests to run
+  --test-list-invert <file>   Path to a file containing a list of tests to skip
   --tsconfig <path>           Path to a single tsconfig applicable to all imported files
+  --ui                        Run the tests in the UI, which shows the trace of each test as it runs
+  --ui-host <host>            The host the UI listens on. Defaults to 127.0.0.1
+  --ui-port <port>            The port the UI listens on. Defaults to a free one
   -j, --workers <workers>     Number of concurrent workers, or a percentage of logical CPU cores
   -h, --help                  Display help`;
 
@@ -144,6 +149,25 @@ export interface TestCommand {
 	configFile: string;
 	overrides: ConfigCLIOverrides;
 	options: RunOptions;
+	/** Where to serve the UI, with `--ui`. */
+	ui?: { host?: string; port?: number };
+}
+
+const UI_OPTIONS = ["--ui", "--ui-host", "--ui-port"];
+
+/** The arguments of `xwright test` without the options of the UI, for the runs the UI starts. */
+export function withoutUiArgs(args: string[]): string[] {
+	const rest: string[] = [];
+	for (let i = 0; i < args.length; i++) {
+		const arg = args[i] ?? "";
+		const name = arg.split("=")[0] ?? "";
+		if (!UI_OPTIONS.includes(name)) {
+			rest.push(arg);
+		} else if (name !== "--ui" && !arg.includes("=")) {
+			i++;
+		}
+	}
+	return rest;
 }
 
 /** Parses the arguments of `xwright test`, the same as `playwright test` takes. */
@@ -173,8 +197,13 @@ export function parseTestArgs(
 			reporter: { type: "string" },
 			retries: { type: "string" },
 			shard: { type: "string" },
+			"test-list": { type: "string" },
+			"test-list-invert": { type: "string" },
 			timeout: { type: "string" },
 			tsconfig: { type: "string" },
+			ui: { type: "boolean" },
+			"ui-host": { type: "string" },
+			"ui-port": { type: "string" },
 			workers: { type: "string", short: "j" },
 			help: { type: "boolean", short: "h" },
 		},
@@ -221,7 +250,20 @@ export function parseTestArgs(
 			projectFilter: values.project,
 			passWithNoTests: values["pass-with-no-tests"] ?? false,
 			lastFailed: values["last-failed"] ?? false,
+			testList: values["test-list"]
+				? resolve(cwd, values["test-list"])
+				: undefined,
+			testListInvert: values["test-list-invert"]
+				? resolve(cwd, values["test-list-invert"])
+				: undefined,
 		},
+		ui:
+			values.ui || values["ui-host"] || values["ui-port"]
+				? {
+						host: values["ui-host"],
+						port: parseInteger("--ui-port", values["ui-port"]),
+					}
+				: undefined,
 	};
 }
 
