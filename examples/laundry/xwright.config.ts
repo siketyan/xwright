@@ -42,6 +42,8 @@ export default defineConfig({
 		},
 		{
 			name: "ios",
+			// Connecting to a simulator and launching the app take long, and count to the first test of each worker.
+			timeout: 120_000,
 			devices: {
 				web,
 				washer,

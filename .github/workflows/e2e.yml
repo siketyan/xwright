@@ -133,6 +133,9 @@ jobs:
           udid=$(xcrun simctl list devices available --json | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
           xcrun simctl bootstatus "$udid" -b
           xcrun simctl install "$udid" "$APP"
+          # The first launch of the app on the new simulator takes long, so it is done here, not in a test.
+          xcrun simctl launch "$udid" dev.xwright.example.laundry
+          xcrun simctl terminate "$udid" dev.xwright.example.laundry
           # Mobilewright fails to install its agent by itself when the agent is missing, so it is installed here.
           pnpm --filter @xwright/mobilewright exec mobilewright install -d "$udid"
       - name: Run the example on the web, an iOS simulator and a fake washer
