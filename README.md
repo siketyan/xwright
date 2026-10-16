@@ -16,6 +16,7 @@ through adapters.
 | [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()`, and the adapter SDK |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
+| [`@xwright/ui`](./packages/ui) | The UI that shows the traces |
 
 ## Usage
 
@@ -89,6 +90,8 @@ The trace of a test is written to `xwright-trace` in its output directory, and a
 - `trace.json`: the test, the devices and the result, with the clock to convert the times of the events.
 - `test.ndjson`: the steps of `step()`, the output and the errors of the test.
 - `<device>.ndjson` and `<device>/resources/`: the actions, snapshots, logs and communications of each device.
+
+`xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser.
 
 `xwright export-trace` writes each trace under `test-results` (or the paths given) into a ZIP file next to it, such as
 `xwright-trace.zip`, to upload from CI.

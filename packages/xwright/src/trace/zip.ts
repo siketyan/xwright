@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, sep } from "node:path";
-import { crc32, deflateRawSync } from "node:zlib";
+import { crc32, deflateRawSync, inflateRawSync } from "node:zlib";
 
 /** 1980-01-01 00:00 in the MS-DOS format of ZIP, the earliest valid one, so that archives of the same files match. */
 const DOS_EPOCH = ((1 << 5) | 1) << 16;
@@ -86,4 +86,43 @@ export function findTraces(paths: string[]): string[] {
 		}
 	}
 	return [...traces].sort();
+}
+
+/** Reads the entries of a ZIP archive written by {@link zipDirectory}, or by other tools without ZIP64. */
+export function readZip(file: string): Map<string, Buffer> {
+	const zip = readFileSync(file);
+	const end = zip.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+	if (end < 0) {
+		throw new Error(`${file} is not a ZIP archive`);
+	}
+	const count = zip.readUInt16LE(end + 10);
+	let position = zip.readUInt32LE(end + 16);
+	const entries = new Map<string, Buffer>();
+	for (let i = 0; i < count; i++) {
+		const method = zip.readUInt16LE(position + 10);
+		const compressedSize = zip.readUInt32LE(position + 20);
+		const nameLength = zip.readUInt16LE(position + 28);
+		const extraLength = zip.readUInt16LE(position + 30);
+		const commentLength = zip.readUInt16LE(position + 32);
+		const offset = zip.readUInt32LE(position + 42);
+		const name = zip.toString(
+			"utf8",
+			position + 46,
+			position + 46 + nameLength,
+		);
+		const start =
+			offset +
+			30 +
+			zip.readUInt16LE(offset + 26) +
+			zip.readUInt16LE(offset + 28);
+		const data = zip.subarray(start, start + compressedSize);
+		if (!name.endsWith("/")) {
+			entries.set(
+				name,
+				method === 8 ? inflateRawSync(data) : Buffer.from(data),
+			);
+		}
+		position += 46 + nameLength + extraLength + commentLength;
+	}
+	return entries;
 }
