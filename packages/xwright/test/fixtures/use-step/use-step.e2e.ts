@@ -17,6 +17,6 @@ test("runs only in the projects with the device", async () => {
 	expect(value).toBe(42);
 });
 
-test("has no device outside the lifecycle", () => {
-	expect(() => phone.name).toThrow(/Device "phone" is not available here/);
+test("points to the device", () => {
+	expect(phone.name).toBe("phone");
 });

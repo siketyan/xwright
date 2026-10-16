@@ -23,7 +23,8 @@ export interface Devices {}
  * Declares that the tests of this file use a device, and returns its handle. Call it at the top level of a test file.
  *
  * The tests run in every project that has all the devices they use, and are skipped in the others. The handle points
- * to the device of the running test, so use it inside tests and hooks.
+ * to the device of the running test, so use it inside tests and hooks. The hooks of the adapter run outside the
+ * user's: before the user's `beforeAll` and `beforeEach`, and after the user's `afterEach` and `afterAll`.
  */
 export function use<Name extends keyof Devices & string>(
 	name: Name,
@@ -33,6 +34,18 @@ export function use<Name extends keyof Devices & string>(
 		({ xwright }) => !Object.hasOwn(xwright.devices, name),
 		`The project does not have device "${name}"`,
 	);
+	test.beforeAll(async ({ xwright, _xwrightWorker }, testInfo) => {
+		const device = xwright.devices[name];
+		if (device) {
+			await _xwrightWorker.beforeAll(name, device, testInfo);
+		}
+	});
+	test.afterEach(async ({ _xwrightWorker }, testInfo) => {
+		await _xwrightWorker.onFailure(testInfo);
+	});
+	test.afterAll(({ _xwrightWorker }, testInfo) => {
+		_xwrightWorker.afterAll(name, testInfo);
+	});
 	return createHandle(name) as Devices[Name];
 }
 
