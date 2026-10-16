@@ -1,0 +1,51 @@
+name: Workflows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@v0.7.1
+        with:
+          version: 1.31.1
+          # Advanced Security is not available for this repository, so the findings go to the log and fail the job.
+          advanced-security: false
+
+  lockfile:
+    name: Lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.2.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Verify actions.lock
+        run: gh actions-lock --verify
+        env:
+          GH_TOKEN: ${{ github.token }}

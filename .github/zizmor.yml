@@ -1,0 +1,6 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        # The commit of every action is locked in .github/workflows/actions.lock, so workflows refer to version tags.
+        "*": ref-pin
