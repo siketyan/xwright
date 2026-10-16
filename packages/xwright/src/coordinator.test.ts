@@ -1,3 +1,4 @@
+import type { FullConfig } from "playwright/test";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineAdapter } from "./adapter.js";
 import {
@@ -5,6 +6,8 @@ import {
 	Coordinator,
 	requestShared,
 } from "./coordinator.js";
+
+const config = { workers: 1 } as FullConfig;
 
 describe("Coordinator", () => {
 	afterEach(() => {
@@ -27,6 +30,7 @@ describe("Coordinator", () => {
 				["0", adapter("first")],
 				["1", adapter("unused")],
 			]),
+			config,
 		);
 		process.env[COORDINATOR_URL_ENV] = await coordinator.listen();
 
@@ -37,7 +41,7 @@ describe("Coordinator", () => {
 		await coordinator.close();
 		expect(disposeOnce).toHaveBeenCalledExactlyOnceWith(
 			{ value: "first" },
-			{ options: "first" },
+			{ options: "first", config },
 		);
 	});
 
@@ -52,7 +56,7 @@ describe("Coordinator", () => {
 			},
 			create: () => ({}),
 		});
-		const coordinator = new Coordinator(new Map([["0", adapter()]]));
+		const coordinator = new Coordinator(new Map([["0", adapter()]]), config);
 		process.env[COORDINATOR_URL_ENV] = await coordinator.listen();
 
 		await expect(requestShared("0")).rejects.toThrow(/no devices/);

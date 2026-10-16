@@ -1,4 +1,4 @@
-import type { TestInfo, WorkerInfo } from "playwright/test";
+import type { FullConfig, TestInfo, WorkerInfo } from "playwright/test";
 import type { Tracer } from "./trace.js";
 
 /** A value that survives `JSON.stringify` unchanged. */
@@ -14,6 +14,8 @@ export type Json =
 export interface OnceContext<Options> {
 	/** The options the adapter was configured with. */
 	options: Options;
+	/** The resolved configuration of Playwright Test, such as the number of workers. */
+	config: FullConfig;
 }
 
 /** The context of the hooks that run in a worker. */
