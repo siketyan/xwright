@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import type {
 	PlaywrightTestConfig,
 	PlaywrightTestProject,
@@ -30,26 +31,59 @@ export interface Config
 	projects?: ProjectConfig[];
 }
 
+/** A device of a project, as Xwright keeps it. */
+export interface ResolvedDevice extends DeviceConfig {
+	/**
+	 * Identifies the adapter across the processes of the run, so that `createOnce` runs once for it. Devices that share
+	 * the same adapter object share the ID.
+	 */
+	id: string;
+}
+
 /** What Xwright puts in `use` of each Playwright Test project. */
 export interface ProjectOptions {
-	devices: Record<string, DeviceConfig>;
+	devices: Record<string, ResolvedDevice>;
 }
 
 /** The key of {@link ProjectOptions} in `use` of each Playwright Test project. */
 export const PROJECT_OPTIONS_KEY = "xwright";
 
-/** Defines the configuration in `xwright.config.ts`, and turns it into the one of Playwright Test. */
+/**
+ * Defines the configuration in `xwright.config.ts`, and turns it into the one of Playwright Test.
+ *
+ * The configuration is evaluated in the runner and in every worker, so the IDs of the adapters come out the same in
+ * all of them.
+ */
 export function defineConfig(
 	config: Config,
 ): PlaywrightTestConfig<object, { [PROJECT_OPTIONS_KEY]: ProjectOptions }> {
-	const { projects, ...rest } = config;
+	const { projects, globalSetup, ...rest } = config;
+	const ids = new Map<Adapter, string>();
+	const resolve = (device: DeviceConfig): ResolvedDevice => {
+		let id = ids.get(device.adapter);
+		if (id === undefined) {
+			id = `${ids.size}`;
+			ids.set(device.adapter, id);
+		}
+		return { ...device, id };
+	};
+
 	return {
 		...rest,
-		projects: (projects ?? [{}]).map(({ devices, ...project }) => ({
+		globalSetup: [
+			fileURLToPath(new URL("./global-setup.js", import.meta.url)),
+			...(globalSetup === undefined ? [] : [globalSetup].flat()),
+		],
+		projects: (projects ?? [{}]).map(({ devices = {}, ...project }) => ({
 			...project,
 			use: {
 				[PROJECT_OPTIONS_KEY]: {
-					devices: devices ?? {},
+					devices: Object.fromEntries(
+						Object.entries(devices).map(([name, device]) => [
+							name,
+							resolve(device),
+						]),
+					),
 				} satisfies ProjectOptions,
 			},
 		})),
