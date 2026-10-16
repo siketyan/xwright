@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import type { Location, TestStepInfo } from "playwright/test";
 import { test } from "./test.js";
+import { currentTestTrack } from "./trace/session.js";
 import { createTracer } from "./trace/tracer.js";
 
 /** Options of {@link step}, the same as `test.step`'s. */
@@ -11,7 +12,7 @@ export interface StepOptions {
 }
 
 /** Records the steps on the track of the test. */
-const tracer = createTracer(() => undefined);
+const tracer = createTracer(currentTestTrack);
 
 /**
  * Declares a step of the test, the same as `test.step`. The step is shown in the report of Playwright Test and on the
@@ -23,7 +24,7 @@ export async function step<T>(
 	options: StepOptions = {},
 ): Promise<T> {
 	const location = options.location ?? callerLocation();
-	return await tracer.action({ title }, () =>
+	return await tracer.action({ title, class: "Test", method: "step" }, () =>
 		test.step(title, body, { ...options, location }),
 	);
 }

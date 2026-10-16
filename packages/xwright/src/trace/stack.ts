@@ -1,11 +1,9 @@
-import { dirname, sep } from "node:path";
+import { basename, dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { StackFrame } from "../trace.js";
 
 /** The directories of Xwright and of the adapters, whose frames are left out of the stacks. */
-const libraryDirectories = new Set<string>([
-	dirname(dirname(fileURLToPath(import.meta.url))) + sep,
-]);
+const libraryDirectories = new Set<string>();
 
 /**
  * Leaves the frames in the directory out of the stacks, such as the ones of an adapter. The current directory and
@@ -13,10 +11,17 @@ const libraryDirectories = new Set<string>([
  */
 export function addLibraryDirectory(directory: string): void {
 	const path = directory.endsWith(sep) ? directory : directory + sep;
-	if (!`${process.cwd()}${sep}`.startsWith(path)) {
-		libraryDirectories.add(path);
+	if (`${process.cwd()}${sep}`.startsWith(path)) {
+		return;
+	}
+	libraryDirectories.add(path);
+	// Source maps point the frames of a built package to its sources.
+	if (basename(directory) === "dist") {
+		libraryDirectories.add(join(dirname(directory), "src") + sep);
 	}
 }
+
+addLibraryDirectory(dirname(dirname(fileURLToPath(import.meta.url))));
 
 /** Returns the directory of the module that called the function that calls this. */
 export function callerDirectory(): string | undefined {
