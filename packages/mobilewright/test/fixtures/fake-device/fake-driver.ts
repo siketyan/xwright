@@ -62,6 +62,9 @@ const driver: Partial<Record<keyof MobilewrightDriver, unknown>> = {
 	async getScreenSize() {
 		return { width: 400, height: 800, scale: 1 };
 	},
+	async screenshot() {
+		return Buffer.from([137, 80, 78, 71]);
+	},
 	async tap(x: number, y: number) {
 		log(`tap ${x} ${y}`);
 	},

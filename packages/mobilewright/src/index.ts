@@ -13,9 +13,11 @@ import {
 	terminateAppIfRunning,
 	toArray,
 } from "mobilewright";
-import { test } from "playwright/test";
 import { defineAdapter } from "xwright";
 import { startDevicePool, stopDevicePool } from "./device-pool.js";
+import { createStepFn, type ScreenshotPhase, traceDriver } from "./trace.js";
+
+export type { ScreenshotPhase };
 
 /** The options of {@link mobilewright}, the same as Mobilewright's `use` and `expect` options. */
 export interface MobilewrightOptions {
@@ -47,6 +49,13 @@ export interface MobilewrightOptions {
 	installTimeout?: number;
 	/** The timeout of waiting for a device from the pool, in milliseconds. Defaults to 15 minutes. */
 	allocationTimeout?: number;
+	/**
+	 * When to take a screenshot around each operation, such as a tap, when the device is traced. Defaults to `after`
+	 * only, as a screenshot takes hundreds of milliseconds.
+	 */
+	screenshots?: ScreenshotPhase[];
+	/** When to record the view hierarchy, when the device is traced. Defaults to `on-failure`. */
+	viewTree?: "on-failure" | "off";
 }
 
 /** What `use()` returns for a device with {@link mobilewright}. */
@@ -60,6 +69,8 @@ export class MobilewrightHandle {
 	_allocation: AllocationHandle | undefined;
 	/** @internal */
 	_device: Device | undefined;
+	/** @internal The driver as is, to take screenshots without recording them as commands. */
+	_driver: MobilewrightDriver | undefined;
 
 	/** The device borrowed for the file. */
 	get device(): Device {
@@ -75,14 +86,14 @@ export class MobilewrightHandle {
 	}
 }
 
-/** Runs the steps of Mobilewright, such as taps and assertions, as steps of Playwright Test. */
-const stepFn: Parameters<Device["setStepFn"]>[0] = (title, fn, location) =>
-	test.step(title, fn, { location });
-
 /**
  * The official adapter for iOS and Android, which drives a device through Mobilewright.
  *
  * A device is borrowed from Mobilewright's device pool for each file, and the app is relaunched before each test.
+ *
+ * When the device is traced, each operation of Mobilewright, such as a tap or an assertion, is an action on its
+ * track, with the commands the driver sent under it and a screenshot after it, and the view hierarchy is recorded
+ * when a test failed.
  *
  * ```ts
  * devices: { phone: { adapter: mobilewright({ platform: "android", bundleId: "com.example.app" }) } }
@@ -106,14 +117,15 @@ export const mobilewright = defineAdapter<
 	async disposeOnce({ url }) {
 		await stopDevicePool(url);
 	},
-	create({ shared }) {
+	create({ shared, options }) {
 		// Mobilewright's client of the device pool finds the pool from the environment variable.
 		process.env.MOBILEWRIGHT_COORDINATOR_URL = shared.url;
 		const handle = new MobilewrightHandle();
 		handle._client = createDevicePoolClient();
+		handle._driver = options.driver ?? new MobilecliDriver();
 		return handle;
 	},
-	async beforeAll(handle, { options, testInfo }) {
+	async beforeAll(handle, { options, testInfo, trace }) {
 		// Waiting for a device has its own timeout, which can be longer than the one of the hook.
 		testInfo.setTimeout(0);
 		const client = handle._client as DevicePoolClient;
@@ -129,7 +141,7 @@ export const mobilewright = defineAdapter<
 			platform: allocation.platform,
 			deviceId: allocation.deviceId,
 			deviceType: allocation.type,
-			driver: options.driver,
+			driver: traceDriver(handle._driver as MobilewrightDriver, trace),
 			timeout: options.connectTimeout,
 			actionTimeout: options.actionTimeout,
 			expectTimeout: options.expectTimeout,
@@ -138,7 +150,13 @@ export const mobilewright = defineAdapter<
 			deviceSettings: { animations: options.animations },
 		});
 		handle._device = device;
-		device.setStepFn(stepFn);
+		device.setStepFn(
+			createStepFn(
+				trace,
+				handle._driver as MobilewrightDriver,
+				options.screenshots ?? ["after"],
+			),
+		);
 
 		// Install each app once per device in the run, as Mobilewright does.
 		for (const app of installApps) {
@@ -152,6 +170,20 @@ export const mobilewright = defineAdapter<
 		if (options.bundleId && options.autoAppLaunch !== false) {
 			await terminateAppIfRunning(handle.device, options.bundleId);
 			await handle.device.launchApp(options.bundleId);
+		}
+	},
+	async onFailure(handle, { options, trace }) {
+		if ((options.viewTree ?? "on-failure") === "off" || !trace.recording) {
+			return;
+		}
+		try {
+			trace.snapshot({
+				type: "xwright.view-tree@1",
+				phase: "after",
+				payload: await handle._driver?.getViewHierarchy(),
+			});
+		} catch {
+			// The device may be gone, such as after the app crashed.
 		}
 	},
 	async afterAll(handle) {
