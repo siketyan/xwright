@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Runner } from "./components/Runner.tsx";
 import { TraceView } from "./components/TraceView.tsx";
 import { watchTrace } from "./model/live.ts";
+import { fetchRunnerState, type RunnerState } from "./model/runner.ts";
 import {
 	type FoundTrace,
 	findTraces,
@@ -14,7 +16,8 @@ type State =
 	| { kind: "loading" }
 	| { kind: "empty"; error?: string }
 	| { kind: "pick"; name: string; traces: FoundTrace[] }
-	| { kind: "trace"; trace: Trace };
+	| { kind: "trace"; trace: Trace }
+	| { kind: "runner"; state: RunnerState };
 
 /** The directory of the trace to show: `?trace=` of the URL, or `trace/` next to the UI. */
 function traceUrl(): string {
@@ -78,8 +81,18 @@ export function App() {
 	);
 
 	useEffect(() => {
-		// Without a trace on the server, such as `xwright show-trace` without a path, wait for one to be dropped.
-		open(httpSource(traceUrl())).catch(() => setState({ kind: "empty" }));
+		(async () => {
+			// Served by `xwright test --ui`, to run the tests.
+			const runner = await fetchRunnerState();
+			if (runner !== undefined) {
+				setState({ kind: "runner", state: runner });
+				return;
+			}
+			// Without a trace on the server, such as `xwright show-trace` without a path, wait for one to be dropped.
+			await open(httpSource(traceUrl())).catch(() =>
+				setState({ kind: "empty" }),
+			);
+		})();
 	}, [open]);
 
 	// A trace can be dropped anywhere, also to replace the one shown.
@@ -142,6 +155,7 @@ export function App() {
 			{state.kind === "trace" && (
 				<TraceView key={state.trace.meta.test?.id} trace={state.trace} />
 			)}
+			{state.kind === "runner" && <Runner initial={state.state} />}
 			{dragging && <div className="drop-overlay">Drop a trace to open it</div>}
 		</div>
 	);

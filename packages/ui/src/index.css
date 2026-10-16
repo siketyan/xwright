@@ -470,3 +470,92 @@ header h1 {
 	background: #ffffff;
 	transform-origin: 0 0;
 }
+
+.runner {
+	display: grid;
+	grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+	height: 100vh;
+}
+
+.tests {
+	border-right: 1px solid var(--border);
+	overflow: auto;
+}
+
+.tests ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.toolbar {
+	display: flex;
+	gap: 4px;
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--border);
+}
+
+.toolbar button {
+	padding: 2px 8px;
+	border-radius: 4px;
+}
+
+.toolbar button:hover:not(:disabled),
+.test-run:hover:not(:disabled) {
+	background: var(--panel);
+}
+
+button:disabled {
+	cursor: default;
+	opacity: 0.5;
+}
+
+.test-file {
+	font-size: 12px;
+	font-weight: 600;
+	margin: 0;
+	padding: 6px 8px 2px;
+	color: var(--muted);
+}
+
+.test {
+	display: flex;
+	align-items: center;
+}
+
+.test.selected {
+	background: var(--selected);
+}
+
+.test-title {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	gap: 6px;
+	padding: 3px 8px 3px 16px;
+	text-align: left;
+}
+
+.test-status {
+	flex: none;
+	width: 1em;
+	text-align: center;
+}
+
+.status-none {
+	color: var(--muted);
+}
+
+.test-run {
+	flex: none;
+	padding: 3px 8px;
+}
+
+.runner-trace {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.runner-trace .app {
+	height: 100vh;
+}

@@ -7,6 +7,7 @@ import {
 	parseShowArgs,
 	parseTestArgs,
 	resolveConfigFile,
+	withoutUiArgs,
 } from "./args.js";
 
 function withConfig(name = "xwright.config.ts"): string {
@@ -57,6 +58,23 @@ describe("parseTestArgs", () => {
 				passWithNoTests: false,
 				lastFailed: false,
 			},
+		});
+	});
+
+	it("takes the options of the UI, which its runs go without", () => {
+		const cwd = withConfig();
+		const args = ["a.spec.ts", "--ui", "--ui-port", "9323", "--ui-host=::1"];
+		expect(parseTestArgs(args, cwd)).toMatchObject({
+			ui: { host: "::1", port: 9323 },
+		});
+		expect(withoutUiArgs(args)).toEqual(["a.spec.ts"]);
+	});
+
+	it("takes a test list", () => {
+		expect(
+			parseTestArgs(["--test-list", "tests.txt"], withConfig()),
+		).toMatchObject({
+			options: { testList: expect.stringMatching(/tests\.txt$/) },
 		});
 	});
 
