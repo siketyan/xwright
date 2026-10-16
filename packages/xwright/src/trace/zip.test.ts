@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { crc32, inflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { findTraces, zipDirectory } from "./zip.js";
+import { findTraces, readZip, zipDirectory } from "./zip.js";
 
 /** Reads the entries of a ZIP archive through its central directory, checking their CRC-32. */
 function unzip(file: string): Record<string, string> {
@@ -54,6 +54,19 @@ describe("zipDirectory", () => {
 			"web.ndjson": '{"type":"before"}\n',
 			"web/resources/abc.png": "png",
 		});
+	});
+});
+
+describe("readZip", () => {
+	it("reads what zipDirectory wrote", () => {
+		const root = mkdtempSync(join(tmpdir(), "xwright-zip-"));
+		zipDirectory(makeTrace(root, "test"), join(root, "trace.zip"));
+		const entries = readZip(join(root, "trace.zip"));
+		expect(
+			Object.fromEntries(
+				[...entries].map(([name, data]) => [name, data.toString("utf8")]),
+			),
+		).toEqual(unzip(join(root, "trace.zip")));
 	});
 });
 

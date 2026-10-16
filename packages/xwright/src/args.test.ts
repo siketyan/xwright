@@ -2,7 +2,12 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseExportArgs, parseTestArgs, resolveConfigFile } from "./args.js";
+import {
+	parseExportArgs,
+	parseShowArgs,
+	parseTestArgs,
+	resolveConfigFile,
+} from "./args.js";
 
 function withConfig(name = "xwright.config.ts"): string {
 	const dir = mkdtempSync(join(tmpdir(), "xwright-"));
@@ -108,5 +113,19 @@ describe("parseExportArgs", () => {
 			paths: ["/app/out/a"],
 			output: "/app/trace.zip",
 		});
+	});
+});
+
+describe("parseShowArgs", () => {
+	it("takes the path and where to listen", () => {
+		expect(parseShowArgs(["trace.zip", "--port", "9323"], "/app")).toEqual({
+			path: "/app/trace.zip",
+			host: undefined,
+			port: 9323,
+		});
+	});
+
+	it("needs one path", () => {
+		expect(() => parseShowArgs([], "/app")).toThrow(/one trace/);
 	});
 });
