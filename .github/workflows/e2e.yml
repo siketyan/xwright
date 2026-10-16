@@ -43,7 +43,15 @@ jobs:
         run: |
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
           df -h /
+      # The build of the app takes long, so the APK is reused until the app or the dependencies change.
+      - name: Cache the APK
+        id: apk-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: examples/laundry/app/android/app/build/outputs/apk/release/app-release.apk
+          key: laundry-apk-${{ hashFiles('pnpm-lock.yaml', 'examples/laundry/app/*.json', 'examples/laundry/app/*.ts', 'examples/laundry/app/*.tsx', 'examples/laundry/app/assets/**') }}
       - name: Cache Gradle
+        if: steps.apk-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: |
@@ -52,6 +60,7 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: gradle-${{ runner.os }}-
       - name: Build the app for Android
+        if: steps.apk-cache.outputs.cache-hit != 'true'
         run: pnpm --filter example-laundry build:android
         env:
           EXPO_NO_TELEMETRY: 1
