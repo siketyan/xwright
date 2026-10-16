@@ -289,3 +289,74 @@ it("renders the DOM snapshots of an action with the stylesheets of the trace", a
 		served.server.close();
 	}
 }, 60_000);
+
+it("follows a trace while it is written", async () => {
+	const dir = join(mkdtempSync(join(tmpdir(), "xwright-ui-")), "xwright-trace");
+	const trace = new TraceDirectory(
+		dir,
+		{
+			id: "live",
+			title: "runs",
+			titlePath: ["live.spec.ts", "runs"],
+			file: import.meta.filename,
+			line: 1,
+			column: 1,
+			retry: 0,
+			project: "web",
+		},
+		{ wallTime: 0, monotonicTime: 1000 },
+	);
+	const test = trace.testTrack();
+	test?.append({
+		type: "before",
+		callId: "call@1",
+		startTime: 1000,
+		title: "first step",
+	});
+	const served = await serveTrace(openTrace(dir));
+	const browser = await chromium.launch(
+		existsSync(executable) ? { executablePath: executable } : {},
+	);
+	try {
+		const page = await browser.newPage();
+		await page.goto(served.url);
+		const actions = page.getByRole("navigation", { name: "Actions" });
+		await expect(
+			actions.getByRole("button", { name: "first step" }),
+		).toBeVisible();
+		await expect(page.getByText("running…")).toBeVisible();
+
+		// A device added, an action of it, and a line written in two parts.
+		const web = trace.deviceTrack({
+			name: "web",
+			adapter: "fake",
+			trace: "on",
+		});
+		web?.append({
+			type: "before",
+			callId: "call@2",
+			parentId: "call@1",
+			startTime: 1010,
+			title: "click",
+		});
+		await actions.getByRole("button", { name: "first step" }).click();
+		await expect(actions.getByRole("button", { name: "click" })).toBeVisible();
+		await expect(
+			page.getByRole("region", { name: "Timeline" }).getByText("web"),
+		).toBeVisible();
+
+		test?.append({ type: "after", callId: "call@1", endTime: 1100 });
+		trace.setResult({ status: "passed", duration: 0 });
+		trace.setResult({ status: "passed", duration: 100 });
+		await expect(page.getByText("passed · 100ms")).toBeVisible();
+		await expect(page.getByText("running…")).toBeHidden();
+		// The selection stays.
+		await expect(
+			actions.getByRole("button", { name: "first step" }),
+		).toHaveAttribute("aria-current", "true");
+	} finally {
+		trace.close();
+		await browser.close();
+		served.server.close();
+	}
+}, 60_000);

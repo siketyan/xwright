@@ -75,6 +75,24 @@ describe("serveTrace", () => {
 		).toBe(404);
 	});
 
+	it("serves ranges of files, for the live UI", async () => {
+		const url = await serve(makeTrace());
+		const track = new URL("trace/web.ndjson", url);
+		const whole = await (await fetch(track)).text();
+
+		const rest = await fetch(track, { headers: { range: "bytes=10-" } });
+		expect(rest.status).toBe(206);
+		expect(rest.headers.get("content-range")).toBe(
+			`bytes 10-${whole.length - 1}/${whole.length}`,
+		);
+		expect(await rest.text()).toBe(whole.slice(10));
+
+		const none = await fetch(track, {
+			headers: { range: `bytes=${whole.length}-` },
+		});
+		expect(none.status).toBe(416);
+	});
+
 	it("refuses a path without a trace", () => {
 		expect(() => openTrace(tmpdir())).toThrow(/has no trace\.json/);
 	});

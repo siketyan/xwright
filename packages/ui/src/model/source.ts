@@ -6,6 +6,11 @@ export interface TraceSource {
 	text(path: string): Promise<string | undefined>;
 	/** The URL to show a file of the trace with, such as in an image. */
 	url(path: string): string;
+	/**
+	 * Reads the bytes of a file from the offset to its end, for a trace still being written; `undefined` for a source
+	 * that does not change, such as a ZIP file.
+	 */
+	bytesFrom?(path: string, offset: number): Promise<Uint8Array>;
 }
 
 /** The trace in the directory at the URL, such as `trace/` of `xwright show-trace`. */
@@ -19,6 +24,19 @@ export function httpSource(base: string): TraceSource {
 			return response.ok ? await response.text() : undefined;
 		},
 		url,
+		async bytesFrom(path, offset) {
+			const response = await fetch(url(path), {
+				cache: "no-store",
+				headers: { range: `bytes=${offset}-` },
+			});
+			// Nothing was appended, or the file is not there yet.
+			if (response.status === 416 || response.status === 404) {
+				return new Uint8Array();
+			}
+			const bytes = new Uint8Array(await response.arrayBuffer());
+			// A server without ranges sends the whole file.
+			return response.status === 206 ? bytes : bytes.subarray(offset);
+		},
 	};
 }
 

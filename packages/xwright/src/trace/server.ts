@@ -102,13 +102,37 @@ export async function serveTrace(
 				response.writeHead(404).end();
 				return;
 			}
+			const headers = {
+				"content-type":
+					CONTENT_TYPES[extname(path)] ?? "application/octet-stream",
+				"cache-control": "no-store",
+				"accept-ranges": "bytes",
+			};
+			// The live UI reads only what was appended to a file since it last read it.
+			const range = /^bytes=(\d+)-(\d*)$/.exec(request.headers.range ?? "");
+			if (range === null) {
+				response.writeHead(200, headers).end(body);
+				return;
+			}
+			const start = Number(range[1]);
+			const end = range[2]
+				? Math.min(Number(range[2]), body.length - 1)
+				: body.length - 1;
+			if (start >= body.length || start > end) {
+				response
+					.writeHead(416, {
+						...headers,
+						"content-range": `bytes */${body.length}`,
+					})
+					.end();
+				return;
+			}
 			response
-				.writeHead(200, {
-					"content-type":
-						CONTENT_TYPES[extname(path)] ?? "application/octet-stream",
-					"cache-control": "no-store",
+				.writeHead(206, {
+					...headers,
+					"content-range": `bytes ${start}-${end}/${body.length}`,
 				})
-				.end(body);
+				.end(body.subarray(start, end + 1));
 		};
 		const path = decodeURIComponent(url.pathname);
 		if (path.startsWith("/trace/")) {
