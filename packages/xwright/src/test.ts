@@ -15,9 +15,8 @@ export interface XwrightFixtures {
 export const test = base.extend<{ _xwrightTest: undefined }, XwrightFixtures>({
 	[PROJECT_OPTIONS_KEY]: [{ devices: {} }, { option: true, scope: "worker" }],
 	_xwrightWorker: [
-		// biome-ignore lint/correctness/noEmptyPattern: Playwright Test requires the fixtures to be destructured.
-		async ({}, use, workerInfo) => {
-			const session = new WorkerSession(workerInfo);
+		async ({ xwright }, use, workerInfo) => {
+			const session = new WorkerSession(workerInfo, xwright.devices);
 			try {
 				await use(session);
 			} finally {

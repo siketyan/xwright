@@ -7,7 +7,7 @@ It runs on Playwright Test, uses Playwright for the web and Mobilewright for mob
 through adapters.
 
 > [!WARNING]
-> Xwright is in early development. The trace and the live UI are not available yet.
+> Xwright is in early development. The live UI to view the trace is not available yet.
 
 ## Packages
 
@@ -73,6 +73,26 @@ that has all the devices it uses, and is skipped in the others.
 
 See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example.
 
+### Trace
+
+Set `trace` on a device to record what it did: `on`, `retain-on-failure` (kept only when the test failed),
+`on-first-retry` or `off` (the default).
+
+```ts
+devices: { phone: { adapter: mobilewright({ platform: "android" }), trace: "retain-on-failure" } }
+```
+
+The trace of a test is written to `xwright-trace` in its output directory, and attached to the report as
+`xwright-trace`:
+
+- `trace.json`: the test, the devices and the result, with the clock to convert the times of the events.
+- `test.ndjson`: the steps of `step()`, the output and the errors of the test.
+- `<device>.ndjson` and `<device>/resources/`: the actions, snapshots, logs and communications of each device.
+
+Events are appended as they happen, in the action model of Playwright's trace, with times of the monotonic clock of
+the host. The creation and the disposal of devices go to `xwright-worker-<index>` in the output directory of the
+project.
+
 ### Official adapters
 
 - `playwright(options)` launches a browser per worker. Every test gets a fresh browser context and page, or
@@ -100,6 +120,15 @@ export const band = defineAdapter<{ address: string }, BandHandle>({
   afterAll: (band) => band.disconnect(),
   dispose: (band) => band.close(),
 });
+```
+
+An adapter records what the device does on its track through `ctx.trace`, which every hook receives:
+
+```ts
+create: ({ trace }) => new BandHandle({
+  // Wrap each command of the driver, so that it shows up as an action on the timeline.
+  send: (command) => trace.action({ title: command.name, params: command.args }, () => driver.send(command)),
+}),
 ```
 
 ## Development

@@ -71,6 +71,8 @@ export function createTracer(resolve: () => Track | undefined): Tracer {
 				return;
 			}
 			const time = t ?? hostTime();
+			// A snapshot taken inside an action belongs to it.
+			callId ??= currentAction.getStore();
 			if (type === "xwright.screenshot@1") {
 				const { file } = track.payload(payload, contentType ?? "image/png") as {
 					file?: string;

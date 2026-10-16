@@ -9,7 +9,8 @@ import type {
 import type { ResolvedDevice } from "./config.js";
 import { requestShared } from "./coordinator.js";
 import { deleteTarget, setTarget } from "./runtime.js";
-import { createTracer } from "./trace/tracer.js";
+import { TraceSession } from "./trace/session.js";
+import type { ActionMeta } from "./trace.js";
 
 type AnyDefinition = AdapterDefinition<unknown, object, Json>;
 
@@ -42,9 +43,11 @@ export class WorkerSession {
 	private file: FileState | undefined;
 	private readonly failed = new WeakSet<TestInfo>();
 	private readonly deferredErrors: unknown[] = [];
+	private readonly traces: TraceSession;
 
-	constructor(workerInfo: WorkerInfo) {
+	constructor(workerInfo: WorkerInfo, devices: Record<string, ResolvedDevice>) {
 		this.workerInfo = workerInfo;
+		this.traces = new TraceSession(workerInfo, devices);
 	}
 
 	/** Runs `beforeAll` of the device for the file of the test, creating the device first in the worker. */
@@ -57,13 +60,13 @@ export class WorkerSession {
 			await this.endFile();
 			this.file = { file: testInfo.file, devices: [], ended: new Map() };
 		}
+		// The events of `beforeAll` go to the trace of the first test of the file.
+		this.traces.enter(testInfo);
+		const file = this.file;
 		const device = this.device(name, config);
-		const handle = await device.handle;
-		await device.definition.beforeAll?.(handle, {
-			...device.context,
-			testInfo,
-		});
-		this.file.devices.push(name);
+		await device.handle;
+		await this.run(name, "beforeAll", testInfo);
+		file.devices.push(name);
 	}
 
 	/** Runs `beforeEach` of the devices of the file, in the order of `use()`. */
@@ -71,6 +74,8 @@ export class WorkerSession {
 		if (this.file?.file !== testInfo.file) {
 			await this.endFile();
 		}
+		this.traces.enter(testInfo);
+		this.traces.captureOutput();
 		for (const name of this.fileDevices(testInfo)) {
 			await this.run(name, "beforeEach", testInfo);
 		}
@@ -92,13 +97,17 @@ export class WorkerSession {
 		);
 	}
 
-	/** Runs `afterEach` of the devices of the file in parallel. */
+	/** Runs `afterEach` of the devices of the file in parallel, and ends the trace of the test. */
 	async afterEach(testInfo: TestInfo): Promise<void> {
-		await settleAll(
-			this.fileDevices(testInfo).map((name) =>
-				this.run(name, "afterEach", testInfo),
-			),
-		);
+		try {
+			await settleAll(
+				this.fileDevices(testInfo).map((name) =>
+					this.run(name, "afterEach", testInfo),
+				),
+			);
+		} finally {
+			this.traces.endTest(testInfo);
+		}
 	}
 
 	/** Marks `afterAll` of the device due, to run after the user's `afterAll`. */
@@ -137,13 +146,18 @@ export class WorkerSession {
 			try {
 				const handle = await device.handle.catch(() => undefined);
 				if (handle !== undefined) {
-					await device.definition.dispose?.(handle, device.context);
+					await this.traces.inWorkerScope(name, () =>
+						device.context.trace.action(hookMeta("dispose"), async () => {
+							await device.definition.dispose?.(handle, device.context);
+						}),
+					);
 				}
 			} catch (error) {
 				errors.push(error);
 			}
 		}
 		this.devices.clear();
+		this.traces.close();
 		if (errors.length === 1) {
 			throw errors[0];
 		}
@@ -166,7 +180,7 @@ export class WorkerSession {
 				name,
 				options: adapter.options,
 				shared: null,
-				trace: createTracer(() => undefined),
+				trace: this.traces.tracer(name),
 				workerInfo: this.workerInfo,
 			};
 			// A failure is kept, so that every file that uses the device in this worker fails at once.
@@ -174,7 +188,11 @@ export class WorkerSession {
 				if (definition.createOnce) {
 					context.shared = await requestShared(config.id);
 				}
-				const handle = await definition.create(context);
+				const handle = await this.traces.inWorkerScope(name, () =>
+					context.trace.action(hookMeta("create"), async () =>
+						definition.create(context),
+					),
+				);
 				setTarget(name, handle);
 				return handle;
 			})();
@@ -187,7 +205,7 @@ export class WorkerSession {
 
 	private async run(
 		name: string,
-		hook: "beforeEach" | "onFailure" | "afterEach" | "afterAll",
+		hook: "beforeAll" | "beforeEach" | "onFailure" | "afterEach" | "afterAll",
 		testInfo: TestInfo,
 	): Promise<void> {
 		const device = this.devices.get(name);
@@ -198,8 +216,20 @@ export class WorkerSession {
 			...device.context,
 			testInfo,
 		};
-		await device.definition[hook]?.(await device.handle, context);
+		const fn = device.definition[hook];
+		if (fn === undefined) {
+			return;
+		}
+		const handle = await device.handle;
+		await context.trace.action(hookMeta(hook), async () => {
+			await fn(handle, context);
+		});
 	}
+}
+
+/** The action of a hook of an adapter on the track of the device. */
+function hookMeta(hook: string): ActionMeta {
+	return { title: hook, class: "Adapter", method: hook, stack: [] };
 }
 
 /** Waits for all the promises, and throws the first error if any of them failed. */
