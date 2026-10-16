@@ -1,0 +1,22 @@
+{
+	"name": "xwright",
+	"version": "0.0.0",
+	"description": "Cross-device end-to-end testing framework built on Playwright Test",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/siketyan/xwright.git",
+		"directory": "packages/xwright"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": ["dist"]
+}

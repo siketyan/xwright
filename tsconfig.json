@@ -1,0 +1,14 @@
+{
+	"files": [],
+	"references": [
+		{
+			"path": "./packages/xwright"
+		},
+		{
+			"path": "./packages/playwright"
+		},
+		{
+			"path": "./packages/mobilewright"
+		}
+	]
+}
