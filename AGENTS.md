@@ -19,7 +19,8 @@ Android through Mobilewright, and takes any other device through adapters writte
   `biome ci`.
 - Test: `pnpm test` (Vitest; every directory under `packages/` is a project)
 - Workflows: run `gh actions-lock` after adding or removing a `uses:` in `.github/workflows/`, and never edit
-  `.github/workflows/actions.lock` by hand. CI runs `gh actions-lock --verify` and zizmor.
+  `.github/workflows/actions.lock` by hand. Before pushing a change to the workflows, check them locally with
+  `gh actions-lock --verify` and `zizmor .` (configured in `.github/zizmor.yml`); CI does not run them.
 
 ## Architecture
 
