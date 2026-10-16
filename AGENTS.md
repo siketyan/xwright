@@ -14,7 +14,8 @@ Android through Mobilewright, and takes any other device through adapters writte
 ## Commands
 
 - Install: `pnpm install`
-- Build: `pnpm build` (`tsc -b` over the project references of `tsconfig.json`, with TypeScript 7)
+- Build: `pnpm build` (`tsc -b` over the project references of `tsconfig.json`, with TypeScript 7, then the Vite build
+  of `@xwright/ui`)
 - Check: `pnpm check` (Biome formats, lints and sorts imports); `pnpm check:fix` applies the fixes. CI runs
   `biome ci`.
 - Test: `pnpm test` (Vitest; every directory under `packages/` is a project)
@@ -27,6 +28,7 @@ Android through Mobilewright, and takes any other device through adapters writte
 - `packages/xwright` — `xwright`: the CLI, the runner over Playwright Test, `use()`, `step()` and the adapter SDK.
 - `packages/playwright` — `@xwright/playwright`: the official adapter for the web.
 - `packages/mobilewright` — `@xwright/mobilewright`: the official adapter for iOS and Android.
+- `packages/ui` — `@xwright/ui`: the UI that shows the traces, a React app built with Vite.
 - `examples/` — example projects. They need real devices, so `pnpm test` does not run them; the E2E workflow runs
   `examples/web-and-mobile` on the web and an Android emulator.
 

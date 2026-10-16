@@ -16,6 +16,7 @@ through adapters.
 | [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()`, and the adapter SDK |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
+| [`@xwright/ui`](./packages/ui) | The UI that shows the traces |
 
 ## Usage
 

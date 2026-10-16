@@ -1,0 +1,30 @@
+{
+	"name": "@xwright/ui",
+	"version": "0.0.0",
+	"description": "The UI of Xwright, which shows the traces",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/siketyan/xwright.git",
+		"directory": "packages/ui"
+	},
+	"type": "module",
+	"exports": {
+		"./package.json": "./package.json"
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc -b && vite build",
+		"dev": "vite"
+	},
+	"devDependencies": {
+		"@types/react": "^19.3.0",
+		"@types/react-dom": "^19.3.0",
+		"@vitejs/plugin-react": "^6.1.2",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"vite": "^8.3.4"
+	}
+}
