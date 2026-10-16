@@ -6,6 +6,14 @@ from a single test, and records what every device did on one timeline.
 It runs on Playwright Test, uses Playwright for the web and Mobilewright for mobile, and lets you add any other device
 through adapters.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/images/trace-dark.png">
+  <img alt="The trace of a test of the coin laundry example on CI: the web, an iOS simulator and a fake washer on one timeline, with the DOM snapshot of the dashboard" src="./docs/images/trace-light.png">
+</picture>
+
+The trace of [`examples/laundry`](./examples/laundry) on CI: a test pays and starts a wash on an iOS simulator, the
+fake washer runs it, and the dashboard on the web follows.
+
 > [!WARNING]
 > Xwright is in early development, and its API may change between minor versions.
 
