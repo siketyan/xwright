@@ -1,0 +1,21 @@
+{
+	"name": "xwright-monorepo",
+	"private": true,
+	"type": "module",
+	"packageManager": "pnpm@12.14.0",
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"check": "biome check .",
+		"check:fix": "biome check --write .",
+		"test": "vitest run"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.5.15",
+		"@types/node": "^26.6.5",
+		"typescript": "^7.0.2",
+		"vitest": "^5.0.5"
+	}
+}

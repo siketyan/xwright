@@ -1,0 +1,27 @@
+{
+	"name": "@xwright/playwright",
+	"version": "0.0.0",
+	"description": "Official Playwright adapter for Xwright",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/siketyan/xwright.git",
+		"directory": "packages/playwright"
+	},
+	"type": "module",
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"xwright": "workspace:*"
+	}
+}

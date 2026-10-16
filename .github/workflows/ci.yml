@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm, Node.js and dependencies
+        uses: pnpm/setup@v3.1.1
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Run Biome
+        run: pnpm exec biome ci .
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm, Node.js and dependencies
+        uses: pnpm/setup@v3.1.1
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Build
+        run: pnpm build
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm, Node.js and dependencies
+        uses: pnpm/setup@v3.1.1
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Run tests
+        run: pnpm test
