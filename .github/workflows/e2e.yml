@@ -15,84 +15,30 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  android:
-    name: Web and Android
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout sources
-        uses: actions/checkout@v7.0.1
-        with:
-          persist-credentials: false
-      - name: Install pnpm, Node.js and dependencies
-        uses: pnpm/setup@v3.1.1
-        with:
-          cache: true
-          require-lockfile: true
-      - name: Build
-        run: pnpm build
-      - name: Install Chromium
-        run: pnpm --filter @xwright/playwright exec playwright install --with-deps chromium
-      # The emulator needs about 7.5 GB for its data partition, more than the runner has free.
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/lib/android/sdk/ndk
-          df -h /
-      # The emulator needs hardware acceleration, which runners allow only after this.
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-      # Boots the emulator once and keeps it in the cache, so that later runs start from the snapshot.
-      - name: Cache the AVD
-        id: avd-cache
-        uses: actions/cache@v6.1.0
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-${{ runner.os }}-${{ env.API_LEVEL }}-google_apis-x86_64
-      - name: Create the AVD and its snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2.38.0
-        with:
-          api-level: ${{ env.API_LEVEL }}
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: false
-          script: echo "Created the snapshot of the AVD."
-      - name: Run the example on the web and an Android emulator
-        uses: reactivecircus/android-emulator-runner@v2.38.0
-        with:
-          api-level: ${{ env.API_LEVEL }}
-          target: google_apis
-          arch: x86_64
-          force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
-          script: pnpm --filter example-web-and-mobile test --project android --project web-only
-      - name: Export the traces
-        if: ${{ !cancelled() }}
-        run: pnpm --filter example-web-and-mobile exec xwright export-trace
-      - name: Upload the traces
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7.0.2
-        with:
-          name: traces
-          path: examples/web-and-mobile/test-results/**/*.zip
-          if-no-files-found: error
-
   laundry:
-    name: Laundry
-    runs-on: ubuntu-latest
+    name: Laundry (${{ matrix.name }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android
+            platform: android
+            runner: ubuntu-latest
+            app: examples/laundry/app/android/app/build/outputs/apk/release/app-release.apk
+            projects: --project android --project web-only
+          - name: iOS
+            platform: ios
+            runner: macos-latest
+            app: examples/laundry/app/ios/build/Build/Products/Release-iphonesimulator/Laundry.app
+            projects: --project ios
+    env:
+      PLATFORM: ${{ matrix.platform }}
+      APP: ${{ matrix.app }}
+      PROJECTS: ${{ matrix.projects }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7.0.1
@@ -108,22 +54,23 @@ jobs:
       - name: Build the server of the example
         run: pnpm --filter example-laundry build
       - name: Install Chromium
-        run: pnpm --filter @xwright/playwright exec playwright install --with-deps chromium
+        run: pnpm --filter @xwright/playwright exec playwright install ${{ runner.os == 'Linux' && '--with-deps' || '' }} chromium
       # The emulator needs about 7.5 GB for its data partition, and the build of the app a few more. The NDK is kept to
       # build the app.
       - name: Free disk space
+        if: matrix.platform == 'android'
         run: |
           sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
           df -h /
-      # The build of the app takes long, so the APK is reused until the app or the dependencies change.
-      - name: Cache the APK
-        id: apk-cache
+      # The build of the app takes long, so the app is reused until the app or the dependencies change.
+      - name: Cache the app
+        id: app-cache
         uses: actions/cache@v6.1.0
         with:
-          path: examples/laundry/app/android/app/build/outputs/apk/release/app-release.apk
-          key: laundry-apk-${{ hashFiles('pnpm-lock.yaml', 'examples/laundry/app/*.json', 'examples/laundry/app/*.ts', 'examples/laundry/app/*.tsx', 'examples/laundry/app/assets/**') }}
+          path: ${{ matrix.app }}
+          key: laundry-${{ matrix.platform }}-${{ hashFiles('pnpm-lock.yaml', 'examples/laundry/app/*.json', 'examples/laundry/app/*.ts', 'examples/laundry/app/*.tsx', 'examples/laundry/app/assets/**') }}
       - name: Cache Gradle
-        if: steps.apk-cache.outputs.cache-hit != 'true'
+        if: matrix.platform == 'android' && steps.app-cache.outputs.cache-hit != 'true'
         uses: actions/cache@v6.1.0
         with:
           path: |
@@ -131,17 +78,22 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: gradle-${{ runner.os }}-
-      - name: Build the app for Android
-        if: steps.apk-cache.outputs.cache-hit != 'true'
-        run: pnpm --filter example-laundry build:android
+      - name: Build the app
+        if: steps.app-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter example-laundry "build:$PLATFORM"
         env:
           EXPO_NO_TELEMETRY: 1
+
+      # Android: runs the tests on an emulator.
       - name: Enable KVM
+        if: matrix.platform == 'android'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+      # Boots the emulator once and keeps it in the cache, so that later runs start from the snapshot.
       - name: Cache the AVD
+        if: matrix.platform == 'android'
         id: avd-cache
         uses: actions/cache@v6.1.0
         with:
@@ -150,7 +102,7 @@ jobs:
             ~/.android/adb*
           key: avd-${{ runner.os }}-${{ env.API_LEVEL }}-google_apis-x86_64
       - name: Create the AVD and its snapshot
-        if: steps.avd-cache.outputs.cache-hit != 'true'
+        if: matrix.platform == 'android' && steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: ${{ env.API_LEVEL }}
@@ -161,6 +113,7 @@ jobs:
           disable-animations: false
           script: echo "Created the snapshot of the AVD."
       - name: Run the example on the web, an Android emulator and a fake washer
+        if: matrix.platform == 'android'
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: ${{ env.API_LEVEL }}
@@ -169,7 +122,21 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
-          script: pnpm --filter example-laundry test --project android --project web-only
+          script: pnpm --filter example-laundry test $PROJECTS
+
+      # iOS: boots the newest iPhone simulator, installs the app and the agent of Mobilewright on it, and runs the tests.
+      - name: Boot a simulator
+        if: matrix.platform == 'ios'
+        run: |
+          udid=$(xcrun simctl list devices available --json | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl install "$udid" "$APP"
+          # Mobilewright fails to install its agent by itself when the agent is missing, so it is installed here.
+          pnpm --filter @xwright/mobilewright exec mobilewright install -d "$udid"
+      - name: Run the example on the web, an iOS simulator and a fake washer
+        if: matrix.platform == 'ios'
+        run: pnpm --filter example-laundry test $PROJECTS
+
       - name: Export the traces
         if: ${{ !cancelled() }}
         run: pnpm --filter example-laundry exec xwright export-trace
@@ -177,6 +144,6 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7.0.2
         with:
-          name: laundry-traces
+          name: laundry-${{ matrix.platform }}-traces
           path: examples/laundry/test-results/**/*.zip
           if-no-files-found: error
