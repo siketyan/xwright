@@ -1,0 +1,190 @@
+import { existsSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
+import { resolve } from "node:path";
+import { parseArgs } from "node:util";
+import type { ConfigCLIOverrides } from "playwright/lib/common";
+import type { RunOptions } from "playwright/lib/runner";
+
+const CONFIG_EXTENSIONS = [".ts", ".js", ".mts", ".mjs", ".cts", ".cjs"];
+const BUILT_IN_REPORTERS = [
+	"list",
+	"line",
+	"dot",
+	"json",
+	"junit",
+	"null",
+	"github",
+	"html",
+	"blob",
+	"perfetto",
+];
+
+export const USAGE = `Usage: xwright test [options] [test-filter...]
+
+Options:
+  -c, --config <file>         Configuration file, or a directory with xwright.config.{ts,js,mts,mjs,cts,cjs}
+  --forbid-only               Fail if test.only is called
+  --fully-parallel            Run all tests in parallel
+  -g, --grep <grep>           Only run tests matching this regular expression
+  --grep-invert <grep>        Only run tests not matching this regular expression
+  --global-timeout <timeout>  Maximum time this test suite can run in milliseconds
+  --last-failed               Only re-run the failures
+  --list                      Collect all the tests and report them, but do not run
+  --max-failures <N>          Stop after the first N failures
+  -x                          Stop after the first failure
+  --output <dir>              Folder for output artifacts
+  --pass-with-no-tests        Make the run pass when no tests are found
+  --project <name...>         Only run tests from the specified projects
+  --quiet                     Suppress stdio
+  --repeat-each <N>           Run each test N times
+  --reporter <reporter>       Reporter to use, comma-separated
+  --retries <retries>         Maximum retry count for flaky tests
+  --shard <shard>             Shard tests and execute only the selected shard, e.g. "1/3"
+  --timeout <timeout>         Test timeout threshold in milliseconds
+  --tsconfig <path>           Path to a single tsconfig applicable to all imported files
+  -j, --workers <workers>     Number of concurrent workers, or a percentage of logical CPU cores
+  -h, --help                  Display help`;
+
+/** What `xwright test` passes to Playwright Test. */
+export interface TestCommand {
+	configFile: string;
+	overrides: ConfigCLIOverrides;
+	options: RunOptions;
+}
+
+/** Parses the arguments of `xwright test`, the same as `playwright test` takes. */
+export function parseTestArgs(
+	args: string[],
+	cwd = process.cwd(),
+): TestCommand | "help" {
+	const { values, positionals } = parseArgs({
+		args,
+		allowPositionals: true,
+		options: {
+			config: { type: "string", short: "c" },
+			"forbid-only": { type: "boolean" },
+			"fully-parallel": { type: "boolean" },
+			grep: { type: "string", short: "g" },
+			"grep-invert": { type: "string" },
+			"global-timeout": { type: "string" },
+			"last-failed": { type: "boolean" },
+			list: { type: "boolean" },
+			"max-failures": { type: "string" },
+			x: { type: "boolean", short: "x" },
+			output: { type: "string" },
+			"pass-with-no-tests": { type: "boolean" },
+			project: { type: "string", multiple: true },
+			quiet: { type: "boolean" },
+			"repeat-each": { type: "string" },
+			reporter: { type: "string" },
+			retries: { type: "string" },
+			shard: { type: "string" },
+			timeout: { type: "string" },
+			tsconfig: { type: "string" },
+			workers: { type: "string", short: "j" },
+			help: { type: "boolean", short: "h" },
+		},
+	});
+	if (values.help) {
+		return "help";
+	}
+
+	const tsconfig = values.tsconfig ? resolve(cwd, values.tsconfig) : undefined;
+	if (tsconfig && !existsSync(tsconfig)) {
+		throw new Error(`--tsconfig "${values.tsconfig}" does not exist`);
+	}
+
+	const overrides: ConfigCLIOverrides = {
+		forbidOnly: values["forbid-only"] || undefined,
+		fullyParallel: values["fully-parallel"] || undefined,
+		globalTimeout: parseInteger("--global-timeout", values["global-timeout"]),
+		maxFailures: values.x
+			? 1
+			: parseInteger("--max-failures", values["max-failures"]),
+		outputDir: values.output ? resolve(cwd, values.output) : undefined,
+		quiet: values.quiet || undefined,
+		repeatEach: parseInteger("--repeat-each", values["repeat-each"]),
+		reporter: values.reporter
+			? values.reporter.split(",").map((name) => [resolveReporter(name, cwd)])
+			: undefined,
+		retries: parseInteger("--retries", values.retries),
+		shard: values.shard ? parseShard(values.shard) : undefined,
+		timeout: parseInteger("--timeout", values.timeout),
+		tsconfig,
+		workers: values.workers,
+	};
+
+	return {
+		configFile: resolveConfigFile(values.config, cwd),
+		overrides: Object.fromEntries(
+			Object.entries(overrides).filter(([, value]) => value !== undefined),
+		),
+		options: {
+			locations: positionals.length > 0 ? positionals : undefined,
+			grep: values.grep,
+			grepInvert: values["grep-invert"],
+			listMode: values.list ?? false,
+			projectFilter: values.project,
+			passWithNoTests: values["pass-with-no-tests"] ?? false,
+			lastFailed: values["last-failed"] ?? false,
+		},
+	};
+}
+
+function parseInteger(
+	name: string,
+	value: string | undefined,
+): number | undefined {
+	if (value === undefined) {
+		return undefined;
+	}
+	const number = Number(value);
+	if (!Number.isInteger(number) || number < 0) {
+		throw new Error(`${name} must be a non-negative integer, got "${value}"`);
+	}
+	return number;
+}
+
+function parseShard(shard: string): { current: number; total: number } {
+	const match = /^(\d+)\/(\d+)$/.exec(shard);
+	const current = Number(match?.[1]);
+	const total = Number(match?.[2]);
+	if (!match || total < 1 || current < 1 || current > total) {
+		throw new Error(
+			`--shard "${shard}" must be "current/total", 1-based, e.g. "3/5"`,
+		);
+	}
+	return { current, total };
+}
+
+function resolveReporter(name: string, cwd: string): string {
+	if (BUILT_IN_REPORTERS.includes(name)) {
+		return name;
+	}
+	const path = resolve(cwd, name);
+	if (existsSync(path)) {
+		return path;
+	}
+	return createRequire(resolve(cwd, "package.json")).resolve(name);
+}
+
+/** Resolves `--config`, or finds `xwright.config.*` when it names a directory or is not given. */
+export function resolveConfigFile(
+	config: string | undefined,
+	cwd: string,
+): string {
+	const path = resolve(cwd, config ?? ".");
+	if (!existsSync(path)) {
+		throw new Error(`${path} does not exist`);
+	}
+	if (!statSync(path).isDirectory()) {
+		return path;
+	}
+	for (const extension of CONFIG_EXTENSIONS) {
+		const file = resolve(path, `xwright.config${extension}`);
+		if (existsSync(file)) {
+			return file;
+		}
+	}
+	throw new Error(`xwright.config.ts is not found in ${path}`);
+}

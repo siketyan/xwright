@@ -10,7 +10,7 @@
 		"build": "tsc -b",
 		"check": "biome check .",
 		"check:fix": "biome check --write .",
-		"test": "vitest run"
+		"test": "tsc -b && vitest run"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
