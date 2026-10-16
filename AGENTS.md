@@ -47,8 +47,8 @@ Android through Mobilewright, and takes any other device through adapters writte
 
 ## Releases
 
-- Releases use changesets. Add a changeset to each PR that changes a published package for the users. The packages
-  are versioned together (`fixed` in `.changeset/config.json`).
+- Releases use changesets. Add a changeset to each PR that changes a published package for the users. Only the
+  packages with changesets are released, each at its own version.
 - The Release workflow opens the "Version Packages" PR from the changesets on `main`. Merging it publishes the
   packages to npm by trusted publishing from the `npm` environment, with provenance, and creates the GitHub releases.
 
