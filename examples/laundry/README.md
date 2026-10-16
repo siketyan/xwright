@@ -51,5 +51,5 @@ building it to change that. The `ios` project expects the app on the booted simu
 or set `LAUNDRY_APP` to an app for Mobilewright to install.
 
 The E2E workflow of this repository builds the app and runs the `android` and `web-only` projects on an Android
-emulator, and the `ios` project on an iOS simulator. It uploads the traces as the `laundry-traces` and
+emulator, and the `ios` project on an iOS simulator. It uploads the traces as the `laundry-android-traces` and
 `laundry-ios-traces` artifacts.
