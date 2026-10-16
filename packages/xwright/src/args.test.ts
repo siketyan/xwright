@@ -1,0 +1,96 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { parseTestArgs, resolveConfigFile } from "./args.js";
+
+function withConfig(name = "xwright.config.ts"): string {
+	const dir = mkdtempSync(join(tmpdir(), "xwright-"));
+	writeFileSync(join(dir, name), "export default {};\n");
+	return dir;
+}
+
+describe("parseTestArgs", () => {
+	it("passes the options of playwright test to Playwright Test", () => {
+		const cwd = withConfig();
+		const parsed = parseTestArgs(
+			[
+				"tests/a.spec.ts",
+				"--project",
+				"web",
+				"--project",
+				"phone",
+				"-g",
+				"login",
+				"-j",
+				"2",
+				"--retries",
+				"1",
+				"--shard",
+				"2/3",
+				"--reporter",
+				"list,json",
+				"-x",
+			],
+			cwd,
+		);
+		expect(parsed).toEqual({
+			configFile: join(cwd, "xwright.config.ts"),
+			overrides: {
+				maxFailures: 1,
+				reporter: [["list"], ["json"]],
+				retries: 1,
+				shard: { current: 2, total: 3 },
+				workers: "2",
+			},
+			options: {
+				locations: ["tests/a.spec.ts"],
+				grep: "login",
+				grepInvert: undefined,
+				listMode: false,
+				projectFilter: ["web", "phone"],
+				passWithNoTests: false,
+				lastFailed: false,
+			},
+		});
+	});
+
+	it("rejects a malformed shard", () => {
+		expect(() => parseTestArgs(["--shard", "4/3"], withConfig())).toThrow(
+			/--shard/,
+		);
+	});
+
+	it("rejects a malformed number", () => {
+		expect(() => parseTestArgs(["--retries", "two"], withConfig())).toThrow(
+			/--retries/,
+		);
+	});
+
+	it("returns help", () => {
+		expect(parseTestArgs(["--help"], withConfig())).toBe("help");
+	});
+});
+
+describe("resolveConfigFile", () => {
+	it("finds xwright.config.* in the directory", () => {
+		const cwd = withConfig("xwright.config.mjs");
+		expect(resolveConfigFile(undefined, cwd)).toBe(
+			join(cwd, "xwright.config.mjs"),
+		);
+	});
+
+	it("takes a file as is", () => {
+		const cwd = withConfig("custom.config.ts");
+		expect(resolveConfigFile("custom.config.ts", cwd)).toBe(
+			join(cwd, "custom.config.ts"),
+		);
+	});
+
+	it("does not fall back to playwright.config.*", () => {
+		const cwd = withConfig("playwright.config.ts");
+		expect(() => resolveConfigFile(undefined, cwd)).toThrow(
+			/xwright\.config\.ts is not found/,
+		);
+	});
+});

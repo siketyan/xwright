@@ -18,7 +18,13 @@
 			"default": "./dist/index.js"
 		}
 	},
+	"bin": {
+		"xwright": "./dist/cli.js"
+	},
 	"files": [
 		"dist"
-	]
+	],
+	"dependencies": {
+		"playwright": "1.63.0"
+	}
 }

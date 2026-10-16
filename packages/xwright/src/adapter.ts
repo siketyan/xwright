@@ -1,0 +1,129 @@
+import type { TestInfo, WorkerInfo } from "playwright/test";
+import type { Tracer } from "./trace.js";
+
+/** A value that survives `JSON.stringify` unchanged. */
+export type Json =
+	| string
+	| number
+	| boolean
+	| null
+	| Json[]
+	| { [key: string]: Json };
+
+/** The context of {@link AdapterDefinition.createOnce} and {@link AdapterDefinition.disposeOnce}. */
+export interface OnceContext<Options> {
+	/** The options the adapter was configured with. */
+	options: Options;
+}
+
+/** The context of the hooks that run in a worker. */
+export interface WorkerContext<Options, Shared extends Json> {
+	/** The name of the device in the configuration, e.g. `phone`. */
+	name: string;
+	/** The options the adapter was configured with. */
+	options: Options;
+	/** The value {@link AdapterDefinition.createOnce} returned, or `undefined` without it. */
+	shared: Shared;
+	/** Records what the device did on its track of the trace. */
+	trace: Tracer;
+	workerInfo: WorkerInfo;
+}
+
+/** The context of the hooks that run for a test file or a test. */
+export interface TestContext<Options, Shared extends Json>
+	extends WorkerContext<Options, Shared> {
+	/** The test, or the first or last test of the file for `beforeAll` and `afterAll`. */
+	testInfo: TestInfo;
+}
+
+/**
+ * The definition of an adapter, which brings a device into Xwright.
+ *
+ * Every hook is optional; what to do in each one is up to the adapter.
+ */
+export interface AdapterDefinition<
+	Options,
+	Handle extends object,
+	Shared extends Json = never,
+> {
+	/** The ID of the adapter, such as its package name. */
+	name: string;
+	/**
+	 * Called once in the whole run, in the runner's process, only when a test that will run uses the device. The
+	 * return value is passed to every worker as `shared`, such as the URL of a coordinator of a device pool.
+	 */
+	createOnce?(ctx: OnceContext<Options>): Shared | Promise<Shared>;
+	/** Called once at the end of the run, in the runner's process, after `createOnce`. */
+	disposeOnce?(shared: Shared, ctx: OnceContext<Options>): void | Promise<void>;
+	/**
+	 * Called once in a worker, when the first file that uses the device comes. The return value is what the handle
+	 * that `use()` returns points to, shared in the worker.
+	 */
+	create(ctx: WorkerContext<Options, Shared>): Handle | Promise<Handle>;
+	/** Called when the worker ends, after `create`. */
+	dispose?(
+		handle: Handle,
+		ctx: WorkerContext<Options, Shared>,
+	): void | Promise<void>;
+	/**
+	 * Called for each file that uses the device, before the user's `beforeAll`. As in Playwright, it runs again when
+	 * the worker is recreated after a failure or for a retry.
+	 */
+	beforeAll?(
+		handle: Handle,
+		ctx: TestContext<Options, Shared>,
+	): void | Promise<void>;
+	/** Called before each test, before the user's `beforeEach`. */
+	beforeEach?(
+		handle: Handle,
+		ctx: TestContext<Options, Shared>,
+	): void | Promise<void>;
+	/**
+	 * Called when a test failed, before the user's `afterEach`, for all devices in parallel. It is called on a
+	 * timeout as well.
+	 */
+	onFailure?(
+		handle: Handle,
+		ctx: TestContext<Options, Shared>,
+	): void | Promise<void>;
+	/** Called after each test, after the user's `afterEach`, for all devices in parallel. */
+	afterEach?(
+		handle: Handle,
+		ctx: TestContext<Options, Shared>,
+	): void | Promise<void>;
+	/** Called for each file that uses the device, after the user's `afterAll`. */
+	afterAll?(
+		handle: Handle,
+		ctx: TestContext<Options, Shared>,
+	): void | Promise<void>;
+}
+
+/** An adapter configured with its options, to be put on a device in the configuration. */
+export interface Adapter<
+	Options = unknown,
+	Handle extends object = object,
+	Shared extends Json = Json,
+> {
+	readonly definition: AdapterDefinition<Options, Handle, Shared>;
+	readonly options: Options;
+}
+
+/** The type of the handle `use()` returns for a device with the adapter. */
+export type HandleOf<A> =
+	A extends Adapter<unknown, infer Handle> ? Handle : never;
+
+/**
+ * Defines an adapter. The returned function takes the options of the adapter and makes an {@link Adapter} to put on
+ * a device in the configuration. The options can be omitted when they accept `undefined`.
+ */
+export function defineAdapter<
+	Options,
+	Handle extends object,
+	Shared extends Json = never,
+>(
+	definition: AdapterDefinition<Options, Handle, Shared>,
+): (
+	...args: undefined extends Options ? [options?: Options] : [options: Options]
+) => Adapter<Options, Handle, Shared> {
+	return (...[options]) => ({ definition, options: options as Options });
+}
