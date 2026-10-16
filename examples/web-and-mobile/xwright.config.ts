@@ -9,6 +9,8 @@ export default defineConfig({
 	testDir: "tests",
 	timeout: 60_000,
 	retries: process.env.CI ? 1 : 0,
+	// Show each step of the tests, also on CI where Playwright Test prints only dots by default.
+	reporter: [["list", { printSteps: true }]],
 	globalSetup: "./global-setup.ts",
 	projects: [
 		{
