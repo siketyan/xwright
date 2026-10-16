@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url";
 import type { Location, TestStepInfo } from "playwright/test";
 import { test } from "./test.js";
-import { createTracer } from "./trace.js";
+import { createTracer } from "./trace/tracer.js";
 
 /** Options of {@link step}, the same as `test.step`'s. */
 export interface StepOptions {
@@ -11,7 +11,7 @@ export interface StepOptions {
 }
 
 /** Records the steps on the track of the test. */
-const tracer = createTracer();
+const tracer = createTracer(() => undefined);
 
 /**
  * Declares a step of the test, the same as `test.step`. The step is shown in the report of Playwright Test and on the

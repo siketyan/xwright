@@ -1,4 +1,5 @@
 import type { FullConfig, TestInfo, WorkerInfo } from "playwright/test";
+import { addLibraryDirectory, callerDirectory } from "./trace/stack.js";
 import type { Tracer } from "./trace.js";
 
 /** A value that survives `JSON.stringify` unchanged. */
@@ -127,5 +128,10 @@ export function defineAdapter<
 ): (
 	...args: undefined extends Options ? [options?: Options] : [options: Options]
 ) => Adapter<Options, Handle, Shared> {
+	// The stacks of actions point to the tests, not to the adapter.
+	const directory = callerDirectory();
+	if (directory !== undefined) {
+		addLibraryDirectory(directory);
+	}
 	return (...[options]) => ({ definition, options: options as Options });
 }

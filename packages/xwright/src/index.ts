@@ -21,9 +21,11 @@ export type {
 	ActionMeta,
 	ActionSpan,
 	EndOptions,
+	InputEvent,
 	LogEvent,
 	ResourceEvent,
 	SnapshotEvent,
+	StackFrame,
 	Tracer,
 } from "./trace.js";
 export { type Devices, use } from "./use.js";

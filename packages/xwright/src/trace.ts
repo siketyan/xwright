@@ -1,3 +1,11 @@
+/** A frame of the stack that called an action, to jump to the source from the trace. */
+export interface StackFrame {
+	file: string;
+	line: number;
+	column: number;
+	function?: string;
+}
+
 /** Metadata of an action recorded on a device's track. */
 export interface ActionMeta {
 	/** The title shown in the action list, e.g. `tap` or `goto`. */
@@ -8,6 +16,8 @@ export interface ActionMeta {
 	method?: string;
 	/** The parameters the API was called with. */
 	params?: Record<string, unknown>;
+	/** The stack that called the action. Defaults to the current one, without the frames of Xwright and adapters. */
+	stack?: StackFrame[];
 	/** The host time the action started at, in milliseconds of the monotonic clock. */
 	t?: number;
 }
@@ -27,6 +37,13 @@ export interface EndOptions {
 	t?: number;
 }
 
+/** Where an action acted on the screen, such as the point of a tap. */
+export interface InputEvent {
+	callId: string;
+	point?: { x: number; y: number };
+	box?: { x: number; y: number; width: number; height: number };
+}
+
 /** A snapshot of the device's state, taken before, during or after an action. */
 export interface SnapshotEvent {
 	/** The ID of the type of the payload, e.g. `xwright.screenshot@1`. */
@@ -35,7 +52,10 @@ export interface SnapshotEvent {
 	phase?: "before" | "action" | "after";
 	/** The action the snapshot belongs to. */
 	callId?: string;
+	/** A value that `JSON.stringify` takes, or the bytes of a file such as a PNG. */
 	payload: unknown;
+	/** The media type of the payload when it is bytes, e.g. `image/png`. */
+	contentType?: string;
 	t?: number;
 }
 
@@ -45,6 +65,8 @@ export interface LogEvent {
 	text: string;
 	/** The action the log belongs to, for logs of waiting. */
 	callId?: string;
+	/** Structured data of the log. */
+	payload?: unknown;
 	t?: number;
 }
 
@@ -63,8 +85,8 @@ export interface ResourceEvent {
 /**
  * Records what a device did on its track of the trace.
  *
- * Adapters hook into the driver of the device and write to this. The trace is not written yet, so every method only
- * runs the given function and records nothing.
+ * Adapters hook into the driver of the device and write to this. Times are of the monotonic clock of the host by
+ * default; an adapter of a device with its own clock passes `t`, converted to the host's.
  */
 export interface Tracer {
 	/** Records an action around `fn`. Actions started inside `fn` become its children. */
@@ -73,26 +95,8 @@ export interface Tracer {
 	begin(meta: ActionMeta): ActionSpan;
 	/** Ends an action started by {@link Tracer.begin}. */
 	end(span: ActionSpan, options?: EndOptions): void;
+	input(event: InputEvent): void;
 	snapshot(event: SnapshotEvent): void;
 	log(event: LogEvent): void;
 	resource(event: ResourceEvent): void;
-}
-
-let nextCallId = 0;
-
-/** A tracer that records nothing, until the trace is written. */
-export function createTracer(): Tracer {
-	return {
-		async action(_meta, fn) {
-			return await fn();
-		},
-		begin() {
-			nextCallId += 1;
-			return { callId: `call@${nextCallId}` };
-		},
-		end() {},
-		snapshot() {},
-		log() {},
-		resource() {},
-	};
 }
