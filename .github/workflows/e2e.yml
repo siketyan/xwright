@@ -46,6 +46,15 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
+      # iOS: boots the newest iPhone simulator while the job installs and builds the rest, as booting takes minutes.
+      - name: Boot a simulator
+        id: simulator
+        if: matrix.platform == 'ios'
+        background: true
+        run: |
+          udid=$(xcrun simctl list devices available --json | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
+          echo "SIMULATOR=$udid" >> "$GITHUB_ENV"
+          xcrun simctl bootstatus "$udid" -b
       - name: Install pnpm, Node.js and dependencies
         uses: pnpm/setup@v3.1.1
         with:
@@ -126,15 +135,15 @@ jobs:
           disable-animations: true
           script: pnpm --filter example-laundry test $PROJECTS
 
-      # iOS: boots the newest iPhone simulator, installs the app and the agent of Mobilewright on it, and runs the tests.
-      - name: Boot a simulator
+      # iOS: installs the app and the agent of Mobilewright on the simulator, and runs the tests.
+      - name: Wait for the simulator
+        wait: simulator
+      - name: Install the app and the agent on the simulator
         if: matrix.platform == 'ios'
         run: |
-          udid=$(xcrun simctl list devices available --json | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
-          xcrun simctl bootstatus "$udid" -b
-          xcrun simctl install "$udid" "$APP"
+          xcrun simctl install "$SIMULATOR" "$APP"
           # Mobilewright fails to install its agent by itself when the agent is missing, so it is installed here.
-          pnpm --filter @xwright/mobilewright exec mobilewright install -d "$udid"
+          pnpm --filter @xwright/mobilewright exec mobilewright install -d "$SIMULATOR"
       - name: Run the example on the web, an iOS simulator and a fake washer
         if: matrix.platform == 'ios'
         run: pnpm --filter example-laundry test $PROJECTS
