@@ -44,6 +44,6 @@ jobs:
           api-level: "37.0"
           target: google_apis
           arch: x86_64
-          # A small screen at a low density renders faster, and still shows the whole page of the tests.
-          pre-emulator-launch-script: printf 'hw.lcd.width=480\nhw.lcd.height=800\nhw.lcd.density=160\n' >> "${ANDROID_AVD_HOME:-$HOME/.android/avd}/test.avd/config.ini"
+          # A 720p screen renders faster than the full HD of current phones, with the same layout in dp (360x640).
+          pre-emulator-launch-script: printf 'hw.lcd.width=720\nhw.lcd.height=1280\nhw.lcd.density=320\n' >> "${ANDROID_AVD_HOME:-$HOME/.android/avd}/test.avd/config.ini"
           script: pnpm --filter example-web-and-mobile test --project android --project web-only
