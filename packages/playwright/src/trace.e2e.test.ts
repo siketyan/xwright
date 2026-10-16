@@ -78,6 +78,15 @@ it("converts Playwright's live trace into the track of the device", async () => 
 			status: 200,
 		}),
 	);
+	// The body of the response is in the trace, for the DOM snapshots.
+	const resource = web.find((event) => event.type === "resource");
+	const response = resource?.response as
+		| { payload: { content: { _file?: string } } }
+		| undefined;
+	const body = response?.payload.content._file;
+	expect(body).toMatch(/^web\/resources\//);
+	expect(existsSync(join(trace, body as string))).toBe(true);
+
 	const frame = web.find((event) => event.type === "screencast-frame");
 	expect(existsSync(join(trace, frame?.file as string))).toBe(true);
 
