@@ -53,6 +53,8 @@ export default defineConfig({
 						installApps: process.env.LAUNDRY_APP
 							? [process.env.LAUNDRY_APP]
 							: [],
+						// Without animations, the view hierarchy is read without waiting for the app to settle.
+						animations: "off",
 					}),
 					trace: "on",
 				},
