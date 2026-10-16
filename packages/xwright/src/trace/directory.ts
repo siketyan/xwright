@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import {
 	closeSync,
+	copyFileSync,
+	existsSync,
 	mkdirSync,
 	openSync,
 	renameSync,
@@ -103,6 +105,19 @@ export class Track {
 			recursive: true,
 		});
 		writeFileSync(join(this.directory, path), data, { flag: "w" });
+		return path;
+	}
+
+	/** Copies a file into the resources under the name, unless it is there, and returns its path relative to the trace. */
+	copyResource(source: string, name: string): string {
+		const path = `${this.name}/resources/${name}`;
+		const target = join(this.directory, path);
+		if (!existsSync(target)) {
+			mkdirSync(join(this.directory, this.name, "resources"), {
+				recursive: true,
+			});
+			copyFileSync(source, target);
+		}
 		return path;
 	}
 

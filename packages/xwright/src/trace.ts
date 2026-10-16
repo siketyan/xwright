@@ -16,7 +16,10 @@ export interface ActionMeta {
 	method?: string;
 	/** The parameters the API was called with. */
 	params?: Record<string, unknown>;
-	/** The stack that called the action. Defaults to the current one, without the frames of Xwright and adapters. */
+	/**
+	 * The stack that called the action, such as the one another tool captured. Defaults to the current one. The frames
+	 * of Node.js, dependencies, Xwright and adapters are left out either way.
+	 */
 	stack?: StackFrame[];
 	/** The host time the action started at, in milliseconds of the monotonic clock. */
 	t?: number;
@@ -89,6 +92,8 @@ export interface ResourceEvent {
  * default; an adapter of a device with its own clock passes `t`, converted to the host's.
  */
 export interface Tracer {
+	/** Whether the events are recorded now, to skip collecting what nobody records. */
+	readonly recording: boolean;
 	/** Records an action around `fn`. Actions started inside `fn` become its children. */
 	action<T>(meta: ActionMeta, fn: () => T | Promise<T>): Promise<T>;
 	/** Starts an action explicitly, for drivers that report the start and the end separately. */
@@ -99,4 +104,14 @@ export interface Tracer {
 	snapshot(event: SnapshotEvent): void;
 	log(event: LogEvent): void;
 	resource(event: ResourceEvent): void;
+	/**
+	 * Appends an event in the format of the trace as is, for adapters that convert the trace of another tool. Times
+	 * must be of the host's clock, and files must be copied with {@link Tracer.copyResource} first.
+	 */
+	raw(event: Record<string, unknown>): void;
+	/**
+	 * Copies a file into the resources of the track under the name, and returns its path for events, or `undefined`
+	 * when nothing is recorded.
+	 */
+	copyResource(source: string, name: string): string | undefined;
 }

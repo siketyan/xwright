@@ -2,10 +2,16 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import type { ActionMeta, ActionSpan, EndOptions, Tracer } from "../trace.js";
 import { hostTime } from "./clock.js";
 import type { Track } from "./directory.js";
-import { captureStack } from "./stack.js";
+import { captureStack, filterStack } from "./stack.js";
 
 /** The action running in the current async context, which becomes the parent of the actions started in it. */
 const currentAction = new AsyncLocalStorage<string>();
+
+/**
+ * The actions not ended yet. An async context can outlive its action, such as a connection opened in it, so the
+ * action of the context is the parent only while it runs.
+ */
+const openActions = new Set<string>();
 
 let lastCallId = 0;
 
@@ -21,7 +27,10 @@ function nextCallId(): string {
 export function createTracer(resolve: () => Track | undefined): Tracer {
 	const begin = (meta: ActionMeta): ActionSpan => {
 		const callId = nextCallId();
-		const parentId = currentAction.getStore();
+		const store = currentAction.getStore();
+		const parentId =
+			store !== undefined && openActions.has(store) ? store : undefined;
+		openActions.add(callId);
 		resolve()?.append({
 			type: "before",
 			callId,
@@ -31,12 +40,14 @@ export function createTracer(resolve: () => Track | undefined): Tracer {
 			class: meta.class ?? "Device",
 			method: meta.method ?? meta.title,
 			params: meta.params ?? {},
-			stack: meta.stack ?? captureStack(),
+			stack:
+				meta.stack === undefined ? captureStack() : filterStack(meta.stack),
 		});
 		return { callId };
 	};
 
 	const end = (span: ActionSpan, options: EndOptions = {}): void => {
+		openActions.delete(span.callId);
 		resolve()?.append({
 			type: "after",
 			callId: span.callId,
@@ -49,6 +60,9 @@ export function createTracer(resolve: () => Track | undefined): Tracer {
 	};
 
 	return {
+		get recording() {
+			return resolve() !== undefined;
+		},
 		async action(meta, fn) {
 			const span = begin(meta);
 			try {
@@ -72,7 +86,9 @@ export function createTracer(resolve: () => Track | undefined): Tracer {
 			}
 			const time = t ?? hostTime();
 			// A snapshot taken inside an action belongs to it.
-			callId ??= currentAction.getStore();
+			const store = currentAction.getStore();
+			callId ??=
+				store !== undefined && openActions.has(store) ? store : undefined;
 			if (type === "xwright.screenshot@1") {
 				const { file } = track.payload(payload, contentType ?? "image/png") as {
 					file?: string;
@@ -120,6 +136,12 @@ export function createTracer(resolve: () => Track | undefined): Tracer {
 					? {}
 					: { response: track.payload(response) }),
 			});
+		},
+		raw(event) {
+			resolve()?.append(event);
+		},
+		copyResource(source, name) {
+			return resolve()?.copyResource(source, name);
 		},
 	};
 }

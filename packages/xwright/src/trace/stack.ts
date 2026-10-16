@@ -31,7 +31,12 @@ export function callerDirectory(): string | undefined {
 
 /** Captures the stack of the caller, without the frames of Node.js, dependencies, Xwright and the adapters. */
 export function captureStack(): StackFrame[] {
-	return parseStack(new Error().stack ?? "").filter(
+	return filterStack(parseStack(new Error().stack ?? ""));
+}
+
+/** Leaves out the frames of Node.js, dependencies, Xwright and the adapters. */
+export function filterStack(frames: StackFrame[]): StackFrame[] {
+	return frames.filter(
 		({ file }) =>
 			!file.startsWith("node:") &&
 			!file.includes(`${sep}node_modules${sep}`) &&
