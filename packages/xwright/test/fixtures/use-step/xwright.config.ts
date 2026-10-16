@@ -1,6 +1,9 @@
 import { defineAdapter, defineConfig } from "xwright";
 
-const fake = defineAdapter({ name: "fake", create: () => ({}) });
+const fake = defineAdapter({
+	name: "fake",
+	create: ({ name }) => ({ name }),
+});
 
 export default defineConfig({
 	testMatch: "*.e2e.ts",
