@@ -378,3 +378,62 @@ header h1 {
 .source-lines code {
 	white-space: pre;
 }
+
+.root {
+	min-height: 100vh;
+}
+
+.drop-zone,
+.picker {
+	max-width: 640px;
+	margin: 15vh auto 0;
+	padding: 24px;
+	text-align: center;
+}
+
+.drop-zone {
+	border: 2px dashed var(--border);
+	border-radius: 8px;
+}
+
+.drop-zone h1,
+.picker h1 {
+	font-size: 18px;
+}
+
+.file-button {
+	display: inline-block;
+	padding: 6px 16px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.file-button input {
+	display: none;
+}
+
+.picker ul {
+	list-style: none;
+	padding: 0;
+	text-align: left;
+}
+
+.picker button {
+	width: 100%;
+	text-align: left;
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--border);
+}
+
+.drop-overlay {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	background: rgba(37, 99, 235, 0.15);
+	border: 3px dashed #2563eb;
+	pointer-events: none;
+}

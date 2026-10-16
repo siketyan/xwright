@@ -90,7 +90,8 @@ The trace of a test is written to `xwright-trace` in its output directory, and a
 - `test.ndjson`: the steps of `step()`, the output and the errors of the test.
 - `<device>.ndjson` and `<device>/resources/`: the actions, snapshots, logs and communications of each device.
 
-`xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser.
+`xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser. Without a path, it opens a
+ZIP file dropped on the page, also the `traces` artifact of CI with the traces in it.
 
 `xwright export-trace` writes each trace under `test-results` (or the paths given) into a ZIP file next to it, such as
 `xwright-trace.zip`, to upload from CI.

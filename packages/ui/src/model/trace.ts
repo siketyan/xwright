@@ -1,3 +1,5 @@
+import type { TraceSource } from "./source.ts";
+
 /** A frame of the stack that called an action. */
 export interface StackFrame {
 	file: string;
@@ -129,6 +131,8 @@ export interface Track {
 /** A trace, read from its files. */
 export interface Trace {
 	meta: TraceMeta;
+	/** The URL to show a file of the trace with, such as a screenshot. */
+	url(file: string): string;
 	tracks: Track[];
 	/** The actions without a parent, in the order they started. */
 	actions: Action[];
@@ -151,10 +155,12 @@ export const TEST_TRACK = "test";
 export function parseTrace(
 	meta: TraceMeta,
 	tracks: { name: string; events: TraceEvent[] }[],
+	url: (file: string) => string = (file) => file,
 ): Trace {
 	const actionsById = new Map<string, Action>();
 	const trace: Trace = {
 		meta,
+		url,
 		tracks: tracks.map(({ name }) => ({
 			name,
 			adapter: meta.devices.find((device) => device.name === name)?.adapter,
@@ -371,26 +377,22 @@ export function parseEvents(text: string): TraceEvent[] {
 	return events;
 }
 
-/** Loads the trace at the URL of its directory, such as `./trace/`. */
-export async function loadTrace(base: string): Promise<Trace> {
-	const url = (path: string) => new URL(path, new URL(base, location.href));
-	const response = await fetch(url("trace.json"));
-	if (!response.ok) {
-		throw new Error(`Cannot read trace.json: ${response.status}`);
+/** Loads the trace from its source. */
+export async function loadTrace(source: TraceSource): Promise<Trace> {
+	const text = await source.text("trace.json");
+	if (text === undefined) {
+		throw new Error(`${source.name} has no trace.json`);
 	}
-	const meta = (await response.json()) as TraceMeta;
+	const meta = JSON.parse(text) as TraceMeta;
 	const files = [
 		{ name: TEST_TRACK, file: `${TEST_TRACK}.ndjson` },
 		...meta.devices.map(({ name, file }) => ({ name, file })),
 	];
 	const tracks = await Promise.all(
-		files.map(async ({ name, file }) => {
-			const response = await fetch(url(file));
-			return {
-				name,
-				events: response.ok ? parseEvents(await response.text()) : [],
-			};
-		}),
+		files.map(async ({ name, file }) => ({
+			name,
+			events: parseEvents((await source.text(file)) ?? ""),
+		})),
 	);
-	return parseTrace(meta, tracks);
+	return parseTrace(meta, tracks, (file) => source.url(file));
 }

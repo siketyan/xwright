@@ -87,14 +87,14 @@ function sourceFiles(trace: TraceFiles): Set<string> {
 
 /**
  * Serves the UI at `/`, the files of the trace under `/trace/`, and the sources its stacks point to at
- * `/source?file=`, on the loopback interface. Returns the URL.
+ * `/source?file=`, on the loopback interface. Returns the URL. Without a trace, the UI opens a dropped one.
  */
 export async function serveTrace(
-	trace: TraceFiles,
+	trace: TraceFiles | undefined,
 	options: { host?: string; port?: number } = {},
 ): Promise<{ url: string; server: Server }> {
 	const ui = uiDirectory();
-	const sources = sourceFiles(trace);
+	const sources = trace === undefined ? new Set<string>() : sourceFiles(trace);
 	const server = createServer((request, response) => {
 		const url = new URL(request.url ?? "/", "http://localhost");
 		const send = (body: Buffer | undefined, path: string) => {
@@ -112,7 +112,7 @@ export async function serveTrace(
 		};
 		const path = decodeURIComponent(url.pathname);
 		if (path.startsWith("/trace/")) {
-			send(trace.read(path.slice("/trace/".length)), path);
+			send(trace?.read(path.slice("/trace/".length)), path);
 		} else if (path === "/source") {
 			const file = url.searchParams.get("file") ?? "";
 			send(

@@ -10,7 +10,7 @@ export const USAGE = `Usage: xwright <command> [options]
 Commands:
   test [test-filter...]   Run the tests
   export-trace [path...]  Write the traces under the paths, or test-results, into ZIP files for CI
-  show-trace <path>       Show a trace, a directory or a ZIP file of it, in the browser
+  show-trace [path]       Show a trace, a directory or a ZIP file of it, in the browser
 
 Run "xwright <command> --help" for the options of a command.`;
 
@@ -23,9 +23,10 @@ Options:
   -o, --output <file>  The ZIP file to write, when exactly one trace is found
   -h, --help           Display help`;
 
-export const SHOW_USAGE = `Usage: xwright show-trace [options] <path>
+export const SHOW_USAGE = `Usage: xwright show-trace [options] [path]
 
 Serves the UI with the trace at the path, a directory with trace.json or a ZIP file of one, and prints its URL.
+Without a path, the UI opens a trace dropped on it.
 
 Options:
   --host <host>  The host to listen on. Defaults to 127.0.0.1
@@ -34,7 +35,7 @@ Options:
 
 /** What `xwright show-trace` does. */
 export interface ShowCommand {
-	path: string;
+	path?: string;
 	host?: string;
 	port?: number;
 }
@@ -57,11 +58,11 @@ export function parseShowArgs(
 		return "help";
 	}
 	const [path, ...rest] = positionals;
-	if (path === undefined || rest.length > 0) {
+	if (rest.length > 0) {
 		throw new Error("show-trace takes the path of one trace");
 	}
 	return {
-		path: resolve(cwd, path),
+		path: path === undefined ? undefined : resolve(cwd, path),
 		host: values.host,
 		port: parseInteger("--port", values.port),
 	};

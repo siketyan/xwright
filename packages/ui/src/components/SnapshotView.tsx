@@ -29,7 +29,7 @@ export function SnapshotView({
 					</figcaption>
 					<div className="screen">
 						<img
-							src={`trace/${preview.file}`}
+							src={trace.url(preview.file)}
 							alt={`The screen of ${preview.track}`}
 						/>
 						{preview.point !== undefined &&
@@ -53,7 +53,7 @@ export function SnapshotView({
 						{snapshot.phase ? ` (${snapshot.phase})` : ""}
 					</summary>
 					{snapshot.file !== undefined ? (
-						<a href={`trace/${snapshot.file}`}>{snapshot.file}</a>
+						<a href={trace.url(snapshot.file)}>{snapshot.file}</a>
 					) : (
 						<pre>{JSON.stringify(snapshot.payload, null, 2)}</pre>
 					)}

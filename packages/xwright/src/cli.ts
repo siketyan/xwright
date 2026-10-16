@@ -57,7 +57,8 @@ async function showTrace(args: string[]): Promise<number> {
 		console.log(SHOW_USAGE);
 		return 0;
 	}
-	const { url } = await serveTrace(openTrace(parsed.path), parsed);
+	const trace = parsed.path === undefined ? undefined : openTrace(parsed.path);
+	const { url } = await serveTrace(trace, parsed);
 	console.log(`Showing the trace at ${url}\nPress Ctrl+C to stop.`);
 	// Serve until interrupted.
 	return await new Promise<number>((resolve) => {
