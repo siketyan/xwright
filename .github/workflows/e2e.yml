@@ -41,7 +41,7 @@ jobs:
       - name: Run the example on the web and an Android emulator
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
-          api-level: "37.0"
+          api-level: 36
           target: google_apis
           arch: x86_64
           script: pnpm --filter example-web-and-mobile test --project android --project web-only
