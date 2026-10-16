@@ -437,3 +437,7 @@ header h1 {
 	border: 3px dashed #2563eb;
 	pointer-events: none;
 }
+
+.status-running {
+	color: #2563eb;
+}

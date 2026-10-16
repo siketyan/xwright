@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TraceView } from "./components/TraceView.tsx";
+import { watchTrace } from "./model/live.ts";
 import {
 	type FoundTrace,
 	findTraces,
@@ -7,7 +8,7 @@ import {
 	readZip,
 	type TraceSource,
 } from "./model/source.ts";
-import { loadTrace, type Trace } from "./model/trace.ts";
+import type { Trace } from "./model/trace.ts";
 
 type State =
 	| { kind: "loading" }
@@ -24,11 +25,26 @@ export function App() {
 	const [state, setState] = useState<State>({ kind: "loading" });
 	const [dragging, setDragging] = useState(false);
 
+	const watching = useRef<AbortController>(undefined);
+
+	// A trace still being written is followed until its test ends.
 	const open = useCallback(async (source: TraceSource) => {
+		watching.current?.abort();
+		const controller = new AbortController();
+		watching.current = controller;
 		setState({ kind: "loading" });
-		const trace = await loadTrace(source);
-		document.title = `${trace.meta.test?.title ?? "Trace"} · Xwright`;
-		setState({ kind: "trace", trace });
+		// Settles with the first read; a later read failing leaves the trace as it was.
+		await new Promise<void>((resolve, reject) => {
+			watchTrace(
+				source,
+				(trace) => {
+					document.title = `${trace.meta.test?.title ?? "Trace"} · Xwright`;
+					setState({ kind: "trace", trace });
+					resolve();
+				},
+				controller.signal,
+			).catch(reject);
+		});
 	}, []);
 
 	const fail = useCallback(

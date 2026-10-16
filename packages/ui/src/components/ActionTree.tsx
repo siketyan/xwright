@@ -57,6 +57,7 @@ function ActionItem({
 				<button
 					type="button"
 					className="action-title"
+					aria-current={action === selected ? "true" : undefined}
 					onClick={() => onSelect(action)}
 				>
 					<span
