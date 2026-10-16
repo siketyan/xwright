@@ -40,10 +40,18 @@ export function MachineScreen({
 		<View>
 			<BackLink text="Washers" onPress={onBack} />
 			<Card style={styles.hero}>
-				<WasherIcon size={120} water={0} />
-				<Text style={styles.name}>Washer {machine.number}</Text>
-				<Text style={typography.muted}>Choose a course</Text>
+				<WasherIcon size={56} water={0} />
+				<View>
+					<Text style={styles.name}>Washer {machine.number}</Text>
+					<Text style={typography.muted}>Choose a course</Text>
+				</View>
 			</Card>
+			{/* Above the courses, so that it stays on the screen of small phones. */}
+			{error && (
+				<View style={styles.error}>
+					<Text style={styles.errorText}>{error}</Text>
+				</View>
+			)}
 			{courses.map((item) => (
 				<CourseOption
 					key={item.id}
@@ -52,11 +60,6 @@ export function MachineScreen({
 					onPress={() => setCourse(item)}
 				/>
 			))}
-			{error && (
-				<View style={styles.error}>
-					<Text style={styles.errorText}>{error}</Text>
-				</View>
-			)}
 			<Button
 				label="Pay and start"
 				text={`Pay ¥${course?.price} and start`}
@@ -68,9 +71,9 @@ export function MachineScreen({
 
 const styles = StyleSheet.create({
 	hero: {
+		flexDirection: "row",
 		alignItems: "center",
-		gap: 10,
-		paddingVertical: 24,
+		gap: 16,
 	},
 	name: {
 		fontSize: 24,
