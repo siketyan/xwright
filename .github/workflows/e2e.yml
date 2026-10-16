@@ -9,6 +9,8 @@ permissions: {}
 
 env:
   API_LEVEL: 36
+  # The Automated Test Device image, lighter than the full one for tests.
+  EMULATOR_TARGET: aosp_atd
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -100,13 +102,13 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-${{ runner.os }}-${{ env.API_LEVEL }}-google_apis-x86_64
+          key: avd-${{ runner.os }}-${{ env.API_LEVEL }}-${{ env.EMULATOR_TARGET }}-x86_64
       - name: Create the AVD and its snapshot
         if: matrix.platform == 'android' && steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: ${{ env.API_LEVEL }}
-          target: google_apis
+          target: ${{ env.EMULATOR_TARGET }}
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -117,7 +119,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2.38.0
         with:
           api-level: ${{ env.API_LEVEL }}
-          target: google_apis
+          target: ${{ env.EMULATOR_TARGET }}
           arch: x86_64
           force-avd-creation: false
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
