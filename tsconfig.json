@@ -9,6 +9,9 @@
 		},
 		{
 			"path": "./packages/mobilewright"
+		},
+		{
+			"path": "./examples/laundry/fake-washer"
 		}
 	]
 }
