@@ -103,8 +103,8 @@ The trace of a test is written to `xwright-trace` in its output directory, and a
 ZIP file dropped on the page, also the `traces` artifact of CI with the traces in it. A trace still being written is
 followed until its test ends.
 
-`xwright test --ui` lists the tests in the browser to run them, all or one at a time, and shows the trace of each test
-as it runs. Each run is a new `xwright test` with the same arguments, so the changes to the tests are picked up.
+`xwright test --ui` lists the tests in the browser to run them, all, filtered by words, statuses, projects and tags,
+or one at a time, and shows the trace of each test as it runs. Each run is a new `xwright test` with the same arguments, so the changes to the tests are picked up.
 
 `xwright export-trace` writes each trace under `test-results` (or the paths given) into a ZIP file next to it, such as
 `xwright-trace.zip`, to upload from CI.

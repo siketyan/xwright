@@ -3,8 +3,13 @@ import { watchTrace } from "../model/live.ts";
 import {
 	command,
 	fetchRunnerState,
+	filterTests,
+	isEmptyFilter,
+	NO_FILTER,
 	type RunnerState,
 	type RunnerTest,
+	type StatusFilter,
+	type TestFilter,
 } from "../model/runner.ts";
 import { httpSource } from "../model/source.ts";
 import type { Trace } from "../model/trace.ts";
@@ -24,12 +29,20 @@ const STATUS_ICONS: Record<NonNullable<RunnerTest["status"]> | "none", string> =
 		interrupted: "⊘",
 	};
 
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+	{ value: "passed", label: "Passed" },
+	{ value: "failed", label: "Failed" },
+	{ value: "skipped", label: "Skipped" },
+	{ value: "none", label: "Not run" },
+];
+
 /** The UI of `xwright test --ui`: the tests to run, and the trace of the selected one as it runs. */
 export function Runner({ initial }: { initial: RunnerState }) {
 	const [state, setState] = useState(initial);
 	const [selectedId, setSelectedId] = useState<string>();
 	// After "Run all", the selection follows the test running.
 	const [following, setFollowing] = useState(false);
+	const [filter, setFilter] = useState<TestFilter>(NO_FILTER);
 
 	useEffect(() => {
 		let stopped = false;
@@ -61,8 +74,10 @@ export function Runner({ initial }: { initial: RunnerState }) {
 	}, [state, following]);
 
 	const selected = state.tests.find((test) => test.id === selectedId);
+	const visible = filterTests(state.tests, filter);
+	const filtered = !isEmptyFilter(filter);
 	const files = new Map<string, RunnerTest[]>();
-	for (const test of state.tests) {
+	for (const test of visible) {
 		files.set(test.file, [...(files.get(test.file) ?? []), test]);
 	}
 	const run = (ids?: string[]) => {
@@ -79,10 +94,11 @@ export function Runner({ initial }: { initial: RunnerState }) {
 						disabled={state.running}
 						onClick={() => {
 							setFollowing(true);
-							run();
+							// With a filter, only the tests in the list.
+							run(filtered ? visible.map((test) => test.id) : undefined);
 						}}
 					>
-						▶ Run all
+						▶ {filtered ? "Run filtered" : "Run all"}
 					</button>
 					<button
 						type="button"
@@ -99,6 +115,12 @@ export function Runner({ initial }: { initial: RunnerState }) {
 						↻ Reload
 					</button>
 				</div>
+				<Filters tests={state.tests} filter={filter} onChange={setFilter} />
+				<p className="test-count">
+					{filtered
+						? `${visible.length} of ${state.tests.length} tests`
+						: `${state.tests.length} tests`}
+				</p>
 				{state.errors.map((error) => (
 					<pre key={error} role="alert" className="error">
 						{error}
@@ -176,6 +198,97 @@ export function Runner({ initial }: { initial: RunnerState }) {
 				)}
 			</section>
 		</div>
+	);
+}
+
+/** The filters of the list of tests: the words to search, and the projects, tags and statuses to show. */
+function Filters({
+	tests,
+	filter,
+	onChange,
+}: {
+	tests: RunnerTest[];
+	filter: TestFilter;
+	onChange(filter: TestFilter): void;
+}) {
+	const projects = [...new Set(tests.map((test) => test.project))].sort();
+	const tags = [...new Set(tests.flatMap((test) => test.tags))].sort();
+	const toggle = <T,>(values: ReadonlySet<T>, value: T): Set<T> => {
+		const next = new Set(values);
+		if (!next.delete(value)) {
+			next.add(value);
+		}
+		return next;
+	};
+	return (
+		<div className="filters">
+			<input
+				type="search"
+				aria-label="Filter tests"
+				placeholder="Filter (e.g. text, @tag)"
+				value={filter.text}
+				onChange={(event) => onChange({ ...filter, text: event.target.value })}
+			/>
+			<FilterGroup
+				label="Status"
+				options={STATUS_FILTERS}
+				selected={filter.statuses}
+				onToggle={(value) =>
+					onChange({ ...filter, statuses: toggle(filter.statuses, value) })
+				}
+			/>
+			{projects.length > 1 && (
+				<FilterGroup
+					label="Projects"
+					options={projects.map((project) => ({
+						value: project,
+						label: project,
+					}))}
+					selected={filter.projects}
+					onToggle={(value) =>
+						onChange({ ...filter, projects: toggle(filter.projects, value) })
+					}
+				/>
+			)}
+			{tags.length > 0 && (
+				<FilterGroup
+					label="Tags"
+					options={tags.map((tag) => ({ value: tag, label: tag }))}
+					selected={filter.tags}
+					onToggle={(value) =>
+						onChange({ ...filter, tags: toggle(filter.tags, value) })
+					}
+				/>
+			)}
+		</div>
+	);
+}
+
+function FilterGroup<T extends string>({
+	label,
+	options,
+	selected,
+	onToggle,
+}: {
+	label: string;
+	options: { value: T; label: string }[];
+	selected: ReadonlySet<T>;
+	onToggle(value: T): void;
+}) {
+	return (
+		<fieldset className="filter-group">
+			<legend>{label}</legend>
+			{options.map((option) => (
+				<button
+					key={option.value}
+					type="button"
+					aria-pressed={selected.has(option.value)}
+					onClick={() => onToggle(option.value)}
+				>
+					{option.label}
+				</button>
+			))}
+		</fieldset>
 	);
 }
 

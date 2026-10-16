@@ -18,6 +18,8 @@ export interface ListedTest {
 	line: number;
 	/** The titles of the describes and of the test, in the file. */
 	titles: string[];
+	/** The tags of the test, such as `@smoke`, from its title and its details. */
+	tags: string[];
 	/** The output directory of the project, under which the output directory of the test is. */
 	outputDir: string;
 }
@@ -88,6 +90,7 @@ export default class UiReporter implements Reporter {
 			line: test.location.line,
 			// The root, the project and the file come first.
 			titles: test.titlePath().slice(3),
+			tags: test.tags,
 			outputDir: project?.outputDir ?? "",
 		};
 	}
