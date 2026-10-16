@@ -1,5 +1,10 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
-import { createServer, type Server } from "node:http";
+import {
+	createServer,
+	type IncomingMessage,
+	type Server,
+	type ServerResponse,
+} from "node:http";
 import { createRequire } from "node:module";
 import type { AddressInfo } from "node:net";
 import { dirname, extname, join, normalize, sep } from "node:path";
@@ -20,7 +25,7 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 /** The files of a trace, from its directory or from a ZIP archive of it. */
-interface TraceFiles {
+export interface TraceFiles {
 	read(path: string): Buffer | undefined;
 }
 
@@ -62,7 +67,7 @@ function uiDirectory(): string {
 }
 
 /** The source files the stacks of the trace point to, which are the only ones the UI may read. */
-function sourceFiles(trace: TraceFiles): Set<string> {
+export function sourceFiles(trace: TraceFiles): Set<string> {
 	const files = new Set<string>();
 	const meta = JSON.parse(
 		trace.read("trace.json")?.toString("utf8") ?? "{}",
@@ -85,6 +90,20 @@ function sourceFiles(trace: TraceFiles): Set<string> {
 	return files;
 }
 
+/** What the server of the UI serves besides the UI. */
+export interface UiContent {
+	/** A file of the trace, under `/trace/`. */
+	trace(path: string): Buffer | undefined;
+	/** Whether the UI may read the source file, at `/source?file=`. */
+	source(file: string): boolean;
+	/** Handles a request of another path, or returns `false`. */
+	handle?(
+		request: IncomingMessage,
+		response: ServerResponse,
+		url: URL,
+	): boolean;
+}
+
 /**
  * Serves the UI at `/`, the files of the trace under `/trace/`, and the sources its stacks point to at
  * `/source?file=`, on the loopback interface. Returns the URL. Without a trace, the UI opens a dropped one.
@@ -93,8 +112,22 @@ export async function serveTrace(
 	trace: TraceFiles | undefined,
 	options: { host?: string; port?: number } = {},
 ): Promise<{ url: string; server: Server }> {
-	const ui = uiDirectory();
 	const sources = trace === undefined ? new Set<string>() : sourceFiles(trace);
+	return await serveUi(
+		{
+			trace: (path) => trace?.read(path),
+			source: (file) => sources.has(file),
+		},
+		options,
+	);
+}
+
+/** Serves the UI and the content, on the loopback interface by default. Returns the URL. */
+export async function serveUi(
+	content: UiContent,
+	options: { host?: string; port?: number } = {},
+): Promise<{ url: string; server: Server }> {
+	const ui = uiDirectory();
 	const server = createServer((request, response) => {
 		const url = new URL(request.url ?? "/", "http://localhost");
 		const send = (body: Buffer | undefined, path: string) => {
@@ -136,14 +169,16 @@ export async function serveTrace(
 		};
 		const path = decodeURIComponent(url.pathname);
 		if (path.startsWith("/trace/")) {
-			send(trace?.read(path.slice("/trace/".length)), path);
+			send(content.trace(path.slice("/trace/".length)), path);
 		} else if (path === "/source") {
 			const file = url.searchParams.get("file") ?? "";
 			send(
-				sources.has(file) && existsSync(file) ? readFileSync(file) : undefined,
+				content.source(file) && existsSync(file)
+					? readFileSync(file)
+					: undefined,
 				".txt",
 			);
-		} else {
+		} else if (!content.handle?.(request, response, url)) {
 			send(
 				readInside(ui, path === "/" ? "index.html" : path.slice(1)),
 				path === "/" ? "index.html" : path,
