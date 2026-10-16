@@ -77,7 +77,7 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 									<img
 										key={frame.file}
 										className="timeline-frame"
-										src={`trace/${frame.file}`}
+										src={trace.url(frame.file)}
 										alt=""
 										style={{ left: left(frame.time) }}
 									/>

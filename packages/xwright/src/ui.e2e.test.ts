@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
@@ -6,6 +6,7 @@ import { expect } from "playwright/test";
 import { afterAll, beforeAll, it } from "vitest";
 import { TraceDirectory } from "./trace/directory.js";
 import { openTrace, serveTrace } from "./trace/server.js";
+import { zipDirectory } from "./trace/zip.js";
 
 const executable = "/opt/pw-browsers/chromium";
 // A PNG of 1x1 pixel.
@@ -90,6 +91,13 @@ function makeTrace(): string {
 	return dir;
 }
 
+/** Writes a trace into a ZIP file, as `export-trace` does, and returns its path. */
+function makeZippedTrace(): string {
+	const dir = makeTrace();
+	zipDirectory(dir, `${dir}.zip`);
+	return `${dir}.zip`;
+}
+
 let url = "";
 let close = () => {};
 
@@ -148,5 +156,53 @@ it("shows the actions, the screen and the details of a trace", async () => {
 		await expect(panel).toContainText("Error: not visible");
 	} finally {
 		await browser.close();
+	}
+}, 60_000);
+
+it("opens a trace dropped on it, also from an artifact with traces in it", async () => {
+	const served = await serveTrace(undefined);
+	const browser = await chromium.launch(
+		existsSync(executable) ? { executablePath: executable } : {},
+	);
+	try {
+		const page = await browser.newPage();
+		await page.goto(served.url);
+		await expect(
+			page.getByRole("heading", { name: "Xwright Trace Viewer" }),
+		).toBeVisible();
+
+		// A ZIP file of one trace opens at once.
+		await page.getByLabel("Open a file").setInputFiles(makeZippedTrace());
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+			"auth.spec.ts › signs in",
+		);
+
+		// An artifact of CI has the ZIP files of the traces in directories.
+		const artifact = mkdtempSync(join(tmpdir(), "xwright-artifact-"));
+		for (const name of ["a-android", "b-web"]) {
+			mkdirSync(join(artifact, "content", name), { recursive: true });
+			renameSync(
+				makeZippedTrace(),
+				join(artifact, "content", name, "xwright-trace.zip"),
+			);
+		}
+		zipDirectory(join(artifact, "content"), join(artifact, "traces.zip"));
+		await page.goto(served.url);
+		await page
+			.getByLabel("Open a file")
+			.setInputFiles(join(artifact, "traces.zip"));
+		await expect(
+			page.getByRole("heading", { name: "Traces in traces.zip" }),
+		).toBeVisible();
+		await page.getByRole("button", { name: "b-web/xwright-trace" }).click();
+		await expect(
+			page.getByRole("img", { name: "The screen of phone" }),
+		).toBeHidden();
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+			"auth.spec.ts › signs in",
+		);
+	} finally {
+		await browser.close();
+		served.server.close();
 	}
 }, 60_000);
