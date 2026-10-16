@@ -17,7 +17,7 @@ export default async function globalSetup(
 		}
 	}
 
-	const coordinator = new Coordinator(adapters);
+	const coordinator = new Coordinator(adapters, config);
 	process.env[COORDINATOR_URL_ENV] = await coordinator.listen();
 	return async () => {
 		delete process.env[COORDINATOR_URL_ENV];
