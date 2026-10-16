@@ -72,7 +72,8 @@ test("signs in on the phone after signing up on the web", async () => {
 Then run the tests with `xwright test`, which takes the options of `playwright test`. A test runs in every project
 that has all the devices it uses, and is skipped in the others.
 
-See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example.
+See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example, and
+[`examples/laundry`](./examples/laundry) for an app tested on the web, a phone and a fake washer.
 
 ### Trace
 
@@ -145,6 +146,8 @@ create: ({ trace }) => new BandHandle({
   send: (command) => trace.action({ title: command.name, params: command.args }, () => driver.send(command)),
 }),
 ```
+
+[`examples/laundry/fake-washer`](./examples/laundry/fake-washer) is a complete adapter of a fake device.
 
 ## Development
 

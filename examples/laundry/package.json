@@ -1,0 +1,18 @@
+{
+	"name": "example-laundry",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "pnpm --filter example-laundry-web build",
+		"build:android": "pnpm --filter example-laundry-app build:android",
+		"build:ios": "pnpm --filter example-laundry-app build:ios",
+		"test": "xwright test",
+		"typecheck": "tsc -p . && pnpm --filter example-laundry-web --filter example-laundry-app typecheck"
+	},
+	"dependencies": {
+		"@xwright/mobilewright": "workspace:*",
+		"@xwright/playwright": "workspace:*",
+		"example-laundry-fake-washer": "workspace:*",
+		"xwright": "workspace:*"
+	}
+}
