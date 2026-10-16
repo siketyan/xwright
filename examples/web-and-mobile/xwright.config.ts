@@ -16,31 +16,33 @@ export default defineConfig({
 		{
 			name: "android",
 			devices: {
-				web: { adapter: web },
+				web: { adapter: web, trace: "on" },
 				phone: {
 					adapter: mobilewright({
 						platform: "android",
 						bundleId: "com.android.settings",
 						animations: "off",
 					}),
+					trace: "on",
 				},
 			},
 		},
 		{
 			name: "ios",
 			devices: {
-				web: { adapter: web },
+				web: { adapter: web, trace: "on" },
 				phone: {
 					adapter: mobilewright({
 						platform: "ios",
 						bundleId: "com.apple.Preferences",
 					}),
+					trace: "on",
 				},
 			},
 		},
 		{
 			name: "web-only",
-			devices: { web: { adapter: web } },
+			devices: { web: { adapter: web, trace: "on" } },
 		},
 	],
 });
