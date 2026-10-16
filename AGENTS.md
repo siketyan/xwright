@@ -30,7 +30,10 @@ Android through Mobilewright, and takes any other device through adapters writte
 - `packages/mobilewright` — `@xwright/mobilewright`: the official adapter for iOS and Android.
 - `packages/ui` — `@xwright/ui`: the UI that shows the traces, a React app built with Vite.
 - `examples/` — example projects. They need real devices, so `pnpm test` does not run them; the E2E workflow runs
-  `examples/web-and-mobile` on the web and an Android emulator.
+  them on the web and an Android emulator.
+  - `examples/web-and-mobile` — the smallest test over a browser and a phone.
+  - `examples/laundry` — a coin laundry app (Next.js, Expo) tested with a fake washer, an adapter of a physical
+    device. Its packages are under `examples/laundry/*`.
 
 ## Conventions
 

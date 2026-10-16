@@ -86,3 +86,88 @@ jobs:
           name: traces
           path: examples/web-and-mobile/test-results/**/*.zip
           if-no-files-found: error
+
+  laundry:
+    name: Laundry
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pnpm, Node.js and dependencies
+        uses: pnpm/setup@v3.1.1
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Build
+        run: pnpm build
+      - name: Build the server of the example
+        run: pnpm --filter example-laundry build
+      - name: Install Chromium
+        run: pnpm --filter @xwright/playwright exec playwright install --with-deps chromium
+      # The emulator needs about 7.5 GB for its data partition, and the build of the app a few more. The NDK is kept to
+      # build the app.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+      - name: Cache Gradle
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: gradle-${{ runner.os }}-
+      - name: Build the app for Android
+        run: pnpm --filter example-laundry build:android
+        env:
+          EXPO_NO_TELEMETRY: 1
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Cache the AVD
+        id: avd-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ runner.os }}-${{ env.API_LEVEL }}-google_apis-x86_64
+      - name: Create the AVD and its snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Created the snapshot of the AVD."
+      - name: Run the example on the web, an Android emulator and a fake washer
+        uses: reactivecircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: ${{ env.API_LEVEL }}
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: pnpm --filter example-laundry test --project android --project web-only
+      - name: Export the traces
+        if: ${{ !cancelled() }}
+        run: pnpm --filter example-laundry exec xwright export-trace
+      - name: Upload the traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: laundry-traces
+          path: examples/laundry/test-results/**/*.zip
+          if-no-files-found: error

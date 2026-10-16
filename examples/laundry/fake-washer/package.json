@@ -1,0 +1,14 @@
+{
+	"name": "example-laundry-fake-washer",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"dependencies": {
+		"xwright": "workspace:*"
+	}
+}
