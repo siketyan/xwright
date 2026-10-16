@@ -49,7 +49,7 @@ export default defineConfig({
 					adapter: mobilewright({
 						platform: "ios",
 						bundleId,
-						// The app built by `expo run:ios --configuration Release`, unless it is installed already.
+						// The app built by `pnpm build:ios` is installed on the simulator by `xcrun simctl install` beforehand.
 						installApps: process.env.LAUNDRY_APP
 							? [process.env.LAUNDRY_APP]
 							: [],

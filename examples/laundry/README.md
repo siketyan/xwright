@@ -37,15 +37,19 @@ It needs an Android emulator or an iOS simulator that [Mobilewright](https://mob
 ```sh
 pnpm build                   # build the server
 pnpm build:android           # build the APK of the app, with the Android SDK
+pnpm build:ios               # build the app for the iOS simulator, with Xcode
 pnpm test                    # every project; the global setup starts the server on port 3000 (`PORT`)
 pnpm test --project android  # the web, Android and the washer
+pnpm test --project ios      # the web, iOS and the washer
 pnpm test --project web-only # the web and the washer; the tests with the phone are skipped
 ```
 
 The `android` project installs the APK built by `pnpm build:android`, or the one in `LAUNDRY_APP`. The app reaches the
 server at `10.0.2.2:3000` on the Android emulator and at `localhost:3000` elsewhere; set `EXPO_PUBLIC_API_URL` when
-building it to change that. For the `ios` project, build the app with `pnpm --filter example-laundry-app ios
---configuration Release`, or set `LAUNDRY_APP` to the app to install.
+building it to change that. The `ios` project expects the app on the booted simulator: install the one built by
+`pnpm build:ios` with `xcrun simctl install booted app/ios/build/Build/Products/Release-iphonesimulator/Laundry.app`,
+or set `LAUNDRY_APP` to an app for Mobilewright to install.
 
-The E2E workflow of this repository builds the APK and runs the `android` and `web-only` projects on an Android
-emulator, and uploads the traces as the `laundry-traces` artifact.
+The E2E workflow of this repository builds the app and runs the `android` and `web-only` projects on an Android
+emulator, and the `ios` project on an iOS simulator. It uploads the traces as the `laundry-traces` and
+`laundry-ios-traces` artifacts.
