@@ -56,6 +56,31 @@ export interface Snapshot {
 	file?: string;
 	payload?: unknown;
 	callId?: string;
+	/** The index of a DOM snapshot among the snapshots of its frame. */
+	frameIndex?: number;
+}
+
+/** A node of a DOM snapshot of Playwright: text, `[name, attributes, ...children]`, or a reference to a node of an
+ * earlier snapshot of the frame, `[[snapshots back, node index]]`. */
+export type NodeSnapshot =
+	| string
+	| [string, Record<string, string>?, ...NodeSnapshot[]]
+	| [[number, number]];
+
+/** A DOM snapshot of a frame, as Playwright writes it. */
+export interface FrameSnapshot {
+	callId?: string;
+	phase?: string;
+	snapshotName?: string;
+	pageId: string;
+	frameId: string;
+	frameUrl: string;
+	doctype?: string;
+	html: NodeSnapshot;
+	viewport: { width: number; height: number };
+	timestamp: number;
+	isMainFrame: boolean;
+	resourceOverrides: { url: string; file?: string; ref?: number }[];
 }
 
 /** An action on a track: a step of the test, a call of an API, a command of a driver or a hook of an adapter. */
@@ -133,6 +158,10 @@ export interface Trace {
 	meta: TraceMeta;
 	/** The URL to show a file of the trace with, such as a screenshot. */
 	url(file: string): string;
+	/** Reads a file of the trace as text, such as a stylesheet of a DOM snapshot. */
+	text(file: string): Promise<string | undefined>;
+	/** The DOM snapshots of each frame, in order, which later ones refer to the nodes of. */
+	frameSnapshots: Map<string, FrameSnapshot[]>;
 	tracks: Track[];
 	/** The actions without a parent, in the order they started. */
 	actions: Action[];
@@ -156,11 +185,14 @@ export function parseTrace(
 	meta: TraceMeta,
 	tracks: { name: string; events: TraceEvent[] }[],
 	url: (file: string) => string = (file) => file,
+	text: (file: string) => Promise<string | undefined> = async () => undefined,
 ): Trace {
 	const actionsById = new Map<string, Action>();
 	const trace: Trace = {
 		meta,
 		url,
+		text,
+		frameSnapshots: new Map(),
 		tracks: tracks.map(({ name }) => ({
 			name,
 			adapter: meta.devices.find((device) => device.name === name)?.adapter,
@@ -254,6 +286,13 @@ export function parseTrace(
 				case "snapshot":
 				case "frame-snapshot": {
 					const snapshot = toSnapshot(event);
+					if (event.type === "frame-snapshot") {
+						const frame = event.snapshot as FrameSnapshot;
+						const frames = trace.frameSnapshots.get(frame.frameId) ?? [];
+						snapshot.frameIndex = frames.length;
+						frames.push(frame);
+						trace.frameSnapshots.set(frame.frameId, frames);
+					}
 					see(snapshot.time);
 					withAction(snapshot.callId, (action) => {
 						action.snapshots.push(snapshot);
@@ -292,8 +331,8 @@ export function parseTrace(
 						status: event.status as string | number | undefined,
 						startTime: event.startTime as number,
 						endTime: event.endTime as number,
-						request: event.request,
-						response: event.response,
+						request: unwrap(event.request),
+						response: unwrap(event.response),
 					});
 					break;
 				case "stdout":
@@ -339,12 +378,20 @@ export function parseTrace(
 	return trace;
 }
 
+/** Takes the value out of a payload of an event, which is in it or in a file of the trace when large. */
+function unwrap(value: unknown): unknown {
+	if (typeof value === "object" && value !== null && "payload" in value) {
+		return value.payload;
+	}
+	return value;
+}
+
 function toSnapshot(event: TraceEvent): Snapshot {
 	if (event.type === "frame-snapshot") {
 		const snapshot = event.snapshot as Record<string, unknown>;
 		return {
 			kind: event.type,
-			phase: snapshot.snapshotName as string | undefined,
+			phase: (snapshot.phase ?? snapshot.snapshotName) as string | undefined,
 			time: snapshot.timestamp as number,
 			payload: snapshot,
 			callId: snapshot.callId as string | undefined,
@@ -394,5 +441,10 @@ export async function loadTrace(source: TraceSource): Promise<Trace> {
 			events: parseEvents((await source.text(file)) ?? ""),
 		})),
 	);
-	return parseTrace(meta, tracks, (file) => source.url(file));
+	return parseTrace(
+		meta,
+		tracks,
+		(file) => source.url(file),
+		(file) => source.text(file),
+	);
 }

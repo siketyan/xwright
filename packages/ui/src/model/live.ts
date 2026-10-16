@@ -76,6 +76,7 @@ export async function watchTrace(
 						events: tracks.get(name)?.events ?? [],
 					})),
 					(file) => source.url(file),
+					(file) => source.text(file),
 				),
 			);
 		}

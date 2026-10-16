@@ -231,31 +231,36 @@ export class LiveTraceConverter {
 	}
 
 	/** Keeps the DOM snapshot as Playwright writes it, with the resources it refers to. */
+	/**
+	 * Keeps the DOM snapshot as Playwright writes it, with the resources it refers to. The overridden resources, such
+	 * as stylesheets changed by scripts, get `file`, the path in the trace.
+	 */
 	private convertFrameSnapshot(snapshot: Record<string, unknown>): void {
-		for (const override of (snapshot.resourceOverrides ?? []) as {
-			sha1?: string;
-		}[]) {
-			if (override.sha1 !== undefined) {
-				this.copy(`resources/${override.sha1}`);
-			}
-		}
+		const overrides = (
+			(snapshot.resourceOverrides ?? []) as { sha1?: string; file?: string }[]
+		).map((override) => {
+			const file =
+				override.file ?? (override.sha1 && `resources/${override.sha1}`);
+			return file ? { ...override, file: this.copy(file) } : override;
+		});
 		this.trace.raw({
 			type: "frame-snapshot",
 			snapshot: {
 				...snapshot,
+				resourceOverrides: overrides,
 				callId: this.call(snapshot.callId),
 				timestamp: this.time(snapshot.timestamp),
 			},
 		});
 	}
 
+	/** Converts an entry of HAR, whose bodies get `_file`, the path in the trace, for the DOM snapshots. */
 	private convertResource(entry: HarEntry): void {
-		for (const sha1 of [
-			entry.request.postData?._sha1,
-			entry.response.content._sha1,
-		]) {
-			if (sha1 !== undefined) {
-				this.copy(`resources/${sha1}`);
+		// Playwright refers to a body by its path in its traces directory, or by its hash in older versions.
+		for (const body of [entry.request.postData, entry.response.content]) {
+			const file = body?._file ?? (body?._sha1 && `resources/${body._sha1}`);
+			if (body !== undefined && file) {
+				body._file = this.copy(file);
 			}
 		}
 		const startTime =
@@ -300,8 +305,8 @@ export class LiveTraceConverter {
 interface HarEntry {
 	time: number;
 	_monotonicTime?: number;
-	request: { url: string; postData?: { _sha1?: string } };
-	response: { status: number; content: { _sha1?: string } };
+	request: { url: string; postData?: { _sha1?: string; _file?: string } };
+	response: { status: number; content: { _sha1?: string; _file?: string } };
 }
 
 /** Reads the lines appended to a file since the last read, keeping a line not finished yet for the next time. */
