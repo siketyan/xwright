@@ -89,6 +89,9 @@ The trace of a test is written to `xwright-trace` in its output directory, and a
 - `test.ndjson`: the steps of `step()`, the output and the errors of the test.
 - `<device>.ndjson` and `<device>/resources/`: the actions, snapshots, logs and communications of each device.
 
+`xwright export-trace` writes each trace under `test-results` (or the paths given) into a ZIP file next to it, such as
+`xwright-trace.zip`, to upload from CI.
+
 Events are appended as they happen, in the action model of Playwright's trace, with times of the monotonic clock of
 the host. The creation and the disposal of devices go to `xwright-worker-<index>` in the output directory of the
 project.
