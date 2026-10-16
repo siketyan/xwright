@@ -17,7 +17,7 @@ test("taps slowly", async () => {
 	});
 });
 
-test("fails", async () => {
+test("fails", { tag: "@flaky" }, async () => {
 	await a.tap("button");
 	throw new Error("expected");
 });

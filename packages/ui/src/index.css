@@ -510,6 +510,58 @@ button:disabled {
 	opacity: 0.5;
 }
 
+.filters {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--border);
+}
+
+.filters input {
+	font: inherit;
+	color: inherit;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	padding: 3px 6px;
+}
+
+.filter-group {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+
+.filter-group legend {
+	float: left;
+	margin-right: 4px;
+	color: var(--muted);
+	font-size: 12px;
+}
+
+.filter-group button {
+	padding: 1px 8px;
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	font-size: 12px;
+}
+
+.filter-group button[aria-pressed="true"] {
+	background: var(--selected);
+}
+
+.test-count {
+	margin: 0;
+	padding: 4px 8px 0;
+	color: var(--muted);
+	font-size: 12px;
+}
+
 .test-file {
 	font-size: 12px;
 	font-weight: 600;

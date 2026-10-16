@@ -64,3 +64,57 @@ it("runs the tests and shows the trace of the one running", async () => {
 		runner.stop();
 	}
 }, 90_000);
+
+it("filters the tests, and runs only the ones in the list", async () => {
+	await rm(`${fixture}test-results`, { recursive: true, force: true });
+	const runner = new UiRunner([], fixture);
+	await runner.list();
+	const { url, server } = await serveRunner(runner);
+	const browser = await chromium.launch(
+		existsSync(executable) ? { executablePath: executable } : {},
+	);
+	try {
+		const page = await browser.newPage();
+		await page.goto(url);
+		const tests = page.getByRole("complementary", { name: "Tests" });
+		const slow = tests.getByRole("button", { name: /^\S taps slowly/ });
+		const fails = tests.getByRole("button", { name: /^\S fails/ });
+		await expect(tests.getByText("2 tests")).toBeVisible();
+
+		// The tags of the tests are filters; the only project is not.
+		await expect(tests.getByRole("group", { name: "Projects" })).toHaveCount(0);
+		await tests
+			.getByRole("group", { name: "Tags" })
+			.getByRole("button", { name: "@flaky" })
+			.click();
+		await expect(tests.getByText("1 of 2 tests")).toBeVisible();
+		await expect(slow).toBeHidden();
+
+		// Only the test in the list runs.
+		await tests.getByRole("button", { name: "Run filtered" }).click();
+		await expect(fails.getByTitle("failed")).toBeVisible({ timeout: 15_000 });
+		await expect(
+			tests.getByRole("button", { name: "Run filtered" }),
+		).toBeEnabled();
+
+		// The words and the statuses filter too.
+		await tests
+			.getByRole("group", { name: "Tags" })
+			.getByRole("button", { name: "@flaky" })
+			.click();
+		await tests.getByRole("searchbox", { name: "Filter tests" }).fill("slowly");
+		await expect(slow).toBeVisible();
+		await expect(fails).toBeHidden();
+		await tests.getByRole("searchbox", { name: "Filter tests" }).fill("");
+		await tests
+			.getByRole("group", { name: "Status" })
+			.getByRole("button", { name: "Not run" })
+			.click();
+		await expect(slow.getByTitle("not run")).toBeVisible();
+		await expect(fails).toBeHidden();
+	} finally {
+		await browser.close();
+		server.close();
+		runner.stop();
+	}
+}, 90_000);
