@@ -66,5 +66,7 @@ jobs:
         with:
           cache: true
           require-lockfile: true
+      - name: Install Chromium
+        run: pnpm --filter @xwright/playwright exec playwright install --with-deps chromium
       - name: Run tests
         run: pnpm test
