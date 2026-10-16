@@ -7,10 +7,10 @@
 		"node": ">=22.12.0"
 	},
 	"scripts": {
-		"build": "tsc -b",
+		"build": "tsc -b && pnpm --filter @xwright/ui build",
 		"check": "biome check .",
 		"check:fix": "biome check --write .",
-		"test": "tsc -b && vitest run"
+		"test": "pnpm build && vitest run"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
