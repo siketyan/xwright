@@ -7,7 +7,7 @@ It runs on Playwright Test, uses Playwright for the web and Mobilewright for mob
 through adapters.
 
 > [!WARNING]
-> Xwright is in early development. The live UI to view the trace is not available yet.
+> Xwright is in early development, and its API may change between minor versions.
 
 ## Packages
 
@@ -17,6 +17,14 @@ through adapters.
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
 | [`@xwright/ui`](./packages/ui) | The UI that shows the traces |
+
+## Installation
+
+Install `xwright` and the adapters of the devices to drive:
+
+```sh
+npm install --save-dev xwright @xwright/playwright @xwright/mobilewright
+```
 
 ## Usage
 
