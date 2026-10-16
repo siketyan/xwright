@@ -9,7 +9,7 @@ import type {
 import type { ResolvedDevice } from "./config.js";
 import { requestShared } from "./coordinator.js";
 import { deleteTarget, setTarget } from "./runtime.js";
-import { createTracer } from "./trace.js";
+import { createTracer } from "./trace/tracer.js";
 
 type AnyDefinition = AdapterDefinition<unknown, object, Json>;
 
@@ -166,7 +166,7 @@ export class WorkerSession {
 				name,
 				options: adapter.options,
 				shared: null,
-				trace: createTracer(),
+				trace: createTracer(() => undefined),
 				workerInfo: this.workerInfo,
 			};
 			// A failure is kept, so that every file that uses the device in this worker fails at once.
