@@ -7,7 +7,7 @@ It runs on Playwright Test, uses Playwright for the web and Mobilewright for mob
 through adapters.
 
 > [!WARNING]
-> Xwright is in early development and not usable yet.
+> Xwright is in early development. The trace and the live UI are not available yet.
 
 ## Packages
 
@@ -16,6 +16,91 @@ through adapters.
 | [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()`, and the adapter SDK |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
+
+## Usage
+
+Declare the devices in the projects of `xwright.config.ts`. Any option of Playwright Test other than `use` and
+`webServer` goes as is.
+
+```ts
+import { mobilewright } from "@xwright/mobilewright";
+import { playwright } from "@xwright/playwright";
+import { defineConfig } from "xwright";
+
+export default defineConfig({
+  testDir: "tests",
+  projects: [
+    {
+      name: "android",
+      devices: {
+        web: { adapter: playwright({ baseURL: "http://localhost:3000" }) },
+        phone: { adapter: mobilewright({ platform: "android", bundleId: "com.example.app" }) },
+      },
+    },
+  ],
+});
+```
+
+Ask for the devices with `use()` at the top of a test file, and drive them one after another in a single test.
+
+```ts
+import type { MobilewrightHandle } from "@xwright/mobilewright";
+import type { PlaywrightHandle } from "@xwright/playwright";
+import { step, test, use } from "xwright";
+
+declare module "xwright" {
+  interface Devices {
+    web: PlaywrightHandle;
+    phone: MobilewrightHandle;
+  }
+}
+
+const web = use("web");
+const phone = use("phone");
+
+test("signs in on the phone after signing up on the web", async () => {
+  await step("sign up on the web", async () => {
+    await web.page.goto("/signup");
+    await web.page.getByRole("button", { name: "Sign up" }).click();
+  });
+  await phone.screen.getByRole("button", { name: "Sign in" }).tap();
+  await phone.expect(phone.screen.getByText("Welcome")).toBeVisible();
+});
+```
+
+Then run the tests with `xwright test`, which takes the options of `playwright test`. A test runs in every project
+that has all the devices it uses, and is skipped in the others.
+
+See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example.
+
+### Official adapters
+
+- `playwright(options)` launches a browser per worker. Every test gets a fresh browser context and page, or
+  `isolation: "file"` shares them in a file. It takes `browserName`, `launchOptions` and the options of a browser
+  context such as `baseURL`. The handle is `{ browser, context, page, expect }`.
+- `mobilewright(options)` borrows a device from Mobilewright's device pool for each file, installs `installApps` once
+  per device, and relaunches `bundleId` before each test. It takes the options of Mobilewright, such as `platform`
+  and `driver`. The handle is `{ device, screen, expect }`.
+
+### Adapters
+
+Any other device comes in through an adapter, written outside this repository with `defineAdapter`. Every hook is
+optional except `create`, and the hooks run outside the user's. `createOnce` and `disposeOnce` run once in the whole
+run, in the runner, and the value `createOnce` returns reaches every worker as `ctx.shared`.
+
+```ts
+import { defineAdapter } from "xwright";
+
+export const band = defineAdapter<{ address: string }, BandHandle>({
+  name: "my-band",
+  create: ({ options }) => new BandHandle(options.address),  // once per worker; what the handle points to
+  beforeAll: (band) => band.connect(),  // for each file
+  beforeEach: (band) => band.reset(),  // for each test
+  onFailure: (band, { testInfo }) => band.dumpLogs(testInfo),  // when a test failed
+  afterAll: (band) => band.disconnect(),
+  dispose: (band) => band.close(),
+});
+```
 
 ## Development
 

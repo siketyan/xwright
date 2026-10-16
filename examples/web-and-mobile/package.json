@@ -1,0 +1,14 @@
+{
+	"name": "example-web-and-mobile",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"test": "xwright test",
+		"typecheck": "tsc -p ."
+	},
+	"dependencies": {
+		"@xwright/mobilewright": "workspace:*",
+		"@xwright/playwright": "workspace:*",
+		"xwright": "workspace:*"
+	}
+}

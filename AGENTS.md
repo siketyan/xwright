@@ -27,6 +27,7 @@ Android through Mobilewright, and takes any other device through adapters writte
 - `packages/xwright` — `xwright`: the CLI, the runner over Playwright Test, `use()`, `step()` and the adapter SDK.
 - `packages/playwright` — `@xwright/playwright`: the official adapter for the web.
 - `packages/mobilewright` — `@xwright/mobilewright`: the official adapter for iOS and Android.
+- `examples/` — example projects. They need real devices, so the tests do not run them.
 
 ## Conventions
 
