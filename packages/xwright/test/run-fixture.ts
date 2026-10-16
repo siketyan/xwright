@@ -22,18 +22,26 @@ export interface Suite {
 	}[];
 }
 
-/** Runs `xwright test` in a directory under `test/fixtures`, and returns the report of the JSON reporter. */
+/**
+ * Runs `xwright test` in a fixture project, and returns the report of the JSON reporter. The project is a directory
+ * under `test/fixtures` of this package, or a URL of a directory.
+ */
 export async function runFixture(
-	name: string,
+	project: string | URL,
 	args: string[] = [],
+	env: NodeJS.ProcessEnv = {},
 ): Promise<{ code: number; dir: string; report: Report }> {
-	const dir = fileURLToPath(new URL(`fixtures/${name}/`, import.meta.url));
+	const dir = fileURLToPath(
+		typeof project === "string"
+			? new URL(`fixtures/${project}/`, import.meta.url)
+			: project,
+	);
 	const results = `${dir}results.json`;
 	await rm(results, { force: true });
 	const code = await promisify(execFile)(
 		process.execPath,
 		[cli, "test", ...args],
-		{ cwd: dir },
+		{ cwd: dir, env: { ...process.env, ...env } },
 	).then(
 		() => 0,
 		(error: { code: number }) => error.code,

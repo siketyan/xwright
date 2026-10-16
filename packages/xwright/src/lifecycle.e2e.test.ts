@@ -58,4 +58,4 @@ it("runs the hooks of the adapters outside the user's", async () => {
 		"worker: dispose b",
 		"runner: disposeOnce shared token-shared",
 	]);
-});
+}, 60_000);

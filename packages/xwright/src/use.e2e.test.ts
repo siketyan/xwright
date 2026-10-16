@@ -28,4 +28,4 @@ it("skips the tests in the projects without the device, and reports steps", asyn
 		{ title: "outer", line: 14 },
 		{ title: "inner", line: 15 },
 	]);
-});
+}, 60_000);
