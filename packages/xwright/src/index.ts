@@ -15,6 +15,8 @@ export {
 	type ProjectConfig,
 	type TraceMode,
 } from "./config.js";
+export { type StepOptions, step } from "./step.js";
+export { test, type XwrightFixtures } from "./test.js";
 export type {
 	ActionMeta,
 	ActionSpan,
@@ -24,3 +26,4 @@ export type {
 	SnapshotEvent,
 	Tracer,
 } from "./trace.js";
+export { type Devices, use } from "./use.js";
