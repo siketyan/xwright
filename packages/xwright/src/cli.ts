@@ -3,10 +3,13 @@ import { relative } from "node:path";
 import {
 	EXPORT_USAGE,
 	parseExportArgs,
+	parseShowArgs,
 	parseTestArgs,
+	SHOW_USAGE,
 	TEST_USAGE,
 	USAGE,
 } from "./args.js";
+import { openTrace, serveTrace } from "./trace/server.js";
 import { findTraces, zipDirectory } from "./trace/zip.js";
 
 async function test(args: string[]): Promise<number> {
@@ -48,6 +51,21 @@ function exportTrace(args: string[]): number {
 	return 0;
 }
 
+async function showTrace(args: string[]): Promise<number> {
+	const parsed = parseShowArgs(args);
+	if (parsed === "help") {
+		console.log(SHOW_USAGE);
+		return 0;
+	}
+	const { url } = await serveTrace(openTrace(parsed.path), parsed);
+	console.log(`Showing the trace at ${url}\nPress Ctrl+C to stop.`);
+	// Serve until interrupted.
+	return await new Promise<number>((resolve) => {
+		process.once("SIGINT", () => resolve(0));
+		process.once("SIGTERM", () => resolve(0));
+	});
+}
+
 async function main(argv: string[]): Promise<number> {
 	const [command, ...args] = argv;
 	switch (command) {
@@ -55,6 +73,8 @@ async function main(argv: string[]): Promise<number> {
 			return await test(args);
 		case "export-trace":
 			return exportTrace(args);
+		case "show-trace":
+			return await showTrace(args);
 		case undefined:
 		case "--help":
 		case "-h":

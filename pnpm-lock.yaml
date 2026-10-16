@@ -238,6 +238,9 @@ importers:
 
   packages/xwright:
     dependencies:
+      '@xwright/ui':
+        specifier: workspace:*
+        version: link:../ui
       playwright:
         specifier: 1.63.0
         version: 1.63.0
