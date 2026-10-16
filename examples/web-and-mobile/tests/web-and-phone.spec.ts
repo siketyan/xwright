@@ -10,10 +10,17 @@ test("opens a page on the web and the settings on the phone", async () => {
 		await web.page.goto("/");
 		await web
 			.expect(web.page.getByRole("heading"))
-			.toHaveText("Example Domain");
+			.toHaveText("Xwright example");
 	});
 
 	await step("see the settings on the phone", async () => {
-		await phone.expect(phone.screen.getByText("Settings")).toBeVisible();
+		const platform = test.info().project.name;
+		await phone
+			.expect(
+				phone.screen.getByText(
+					platform === "ios" ? "General" : "Network & internet",
+				),
+			)
+			.toBeVisible();
 	});
 });
