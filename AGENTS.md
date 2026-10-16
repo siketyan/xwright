@@ -19,6 +19,7 @@ Android through Mobilewright, and takes any other device through adapters writte
 - Check: `pnpm check` (Biome formats, lints and sorts imports); `pnpm check:fix` applies the fixes. CI runs
   `biome ci`.
 - Test: `pnpm test` (Vitest; every directory under `packages/` is a project)
+- Changeset: `pnpm changeset` adds a changeset, with the packages to bump and the line of the changelog
 - Workflows: run `gh actions-lock` after adding or removing a `uses:` in `.github/workflows/`, and never edit
   `.github/workflows/actions.lock` by hand. Before pushing a change to the workflows, check them locally with
   `gh actions-lock --verify` and `zizmor .` (configured in `.github/zizmor.yml`); CI does not run them.
@@ -40,6 +41,13 @@ Android through Mobilewright, and takes any other device through adapters writte
 - GitHub Actions: refer to actions by their exact version tag (e.g. `@v7.0.1`); their commits are locked in
   `.github/workflows/actions.lock`. Give each job the least permissions and check out with
   `persist-credentials: false`.
+
+## Releases
+
+- Releases use changesets. Add a changeset to each PR that changes a published package for the users. The packages
+  are versioned together (`fixed` in `.changeset/config.json`).
+- The Release workflow opens the "Version Packages" PR from the changesets on `main`. Merging it publishes the
+  packages to npm by trusted publishing from the `npm` environment, with provenance, and creates the GitHub releases.
 
 ## Git workflow
 
