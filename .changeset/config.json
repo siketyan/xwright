@@ -6,7 +6,7 @@
 	"changelog": ["@changesets/changelog-github", { "repo": "siketyan/xwright" }],
 	"commit": false,
 	"ignore": [],
-	"fixed": [["xwright", "@xwright/*"]],
+	"fixed": [],
 	"linked": [],
 	"updateInternalDependencies": "patch"
 }
