@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseTestArgs, resolveConfigFile } from "./args.js";
+import { parseExportArgs, parseTestArgs, resolveConfigFile } from "./args.js";
 
 function withConfig(name = "xwright.config.ts"): string {
 	const dir = mkdtempSync(join(tmpdir(), "xwright-"));
@@ -92,5 +92,21 @@ describe("resolveConfigFile", () => {
 		expect(() => resolveConfigFile(undefined, cwd)).toThrow(
 			/xwright\.config\.ts is not found/,
 		);
+	});
+});
+
+describe("parseExportArgs", () => {
+	it("defaults to test-results", () => {
+		expect(parseExportArgs([], "/app")).toEqual({
+			paths: ["/app/test-results"],
+			output: undefined,
+		});
+	});
+
+	it("takes paths and an output", () => {
+		expect(parseExportArgs(["out/a", "-o", "trace.zip"], "/app")).toEqual({
+			paths: ["/app/out/a"],
+			output: "/app/trace.zip",
+		});
 	});
 });

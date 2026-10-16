@@ -5,6 +5,54 @@ import { parseArgs } from "node:util";
 import type { ConfigCLIOverrides } from "playwright/lib/common";
 import type { RunOptions } from "playwright/lib/runner";
 
+export const USAGE = `Usage: xwright <command> [options]
+
+Commands:
+  test [test-filter...]   Run the tests
+  export-trace [path...]  Write the traces under the paths, or test-results, into ZIP files for CI
+
+Run "xwright <command> --help" for the options of a command.`;
+
+export const EXPORT_USAGE = `Usage: xwright export-trace [options] [path...]
+
+Writes each trace found under the paths into a ZIP file next to it, e.g. xwright-trace.zip. A path is a directory of
+a trace or a directory to search, such as the output directory of the tests. Defaults to test-results.
+
+Options:
+  -o, --output <file>  The ZIP file to write, when exactly one trace is found
+  -h, --help           Display help`;
+
+/** What `xwright export-trace` does. */
+export interface ExportCommand {
+	paths: string[];
+	output?: string;
+}
+
+/** Parses the arguments of `xwright export-trace`. */
+export function parseExportArgs(
+	args: string[],
+	cwd = process.cwd(),
+): ExportCommand | "help" {
+	const { values, positionals } = parseArgs({
+		args,
+		allowPositionals: true,
+		options: {
+			output: { type: "string", short: "o" },
+			help: { type: "boolean", short: "h" },
+		},
+	});
+	if (values.help) {
+		return "help";
+	}
+	return {
+		paths: (positionals.length > 0 ? positionals : ["test-results"]).map(
+			(path) => resolve(cwd, path),
+		),
+		output:
+			values.output === undefined ? undefined : resolve(cwd, values.output),
+	};
+}
+
 const CONFIG_EXTENSIONS = [".ts", ".js", ".mts", ".mjs", ".cts", ".cjs"];
 const BUILT_IN_REPORTERS = [
 	"list",
@@ -19,7 +67,7 @@ const BUILT_IN_REPORTERS = [
 	"perfetto",
 ];
 
-export const USAGE = `Usage: xwright test [options] [test-filter...]
+export const TEST_USAGE = `Usage: xwright test [options] [test-filter...]
 
 Options:
   -c, --config <file>         Configuration file, or a directory with xwright.config.{ts,js,mts,mjs,cts,cjs}

@@ -76,3 +76,13 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: pnpm --filter example-web-and-mobile test --project android --project web-only
+      - name: Export the traces
+        if: ${{ !cancelled() }}
+        run: pnpm --filter example-web-and-mobile exec xwright export-trace
+      - name: Upload the traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: traces
+          path: examples/web-and-mobile/test-results/**/*.zip
+          if-no-files-found: error

@@ -13,4 +13,8 @@ pnpm test --project android  # Android and the web
 pnpm test --project web-only # the web only; the test with the phone is skipped
 ```
 
-The E2E workflow of this repository runs the `android` and `web-only` projects on an Android emulator.
+Every device is traced: the trace of each test is written to `xwright-trace` in its directory under `test-results`,
+and `pnpm exec xwright export-trace` writes them into ZIP files.
+
+The E2E workflow of this repository runs the `android` and `web-only` projects on an Android emulator, and uploads
+the traces as the `traces` artifact.
