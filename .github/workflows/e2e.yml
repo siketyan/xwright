@@ -32,6 +32,11 @@ jobs:
         run: pnpm build
       - name: Install Chromium
         run: pnpm --filter @xwright/playwright exec playwright install --with-deps chromium
+      # The emulator needs about 7.5 GB for its data partition, more than the runner has free.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL /usr/local/lib/android/sdk/ndk
+          df -h /
       # The emulator needs hardware acceleration, which runners allow only after this.
       - name: Enable KVM
         run: |
@@ -44,6 +49,4 @@ jobs:
           api-level: 36
           target: google_apis
           arch: x86_64
-          # The default data partition of recent images is larger than the free space of the runner.
-          disk-size: 4G
           script: pnpm --filter example-web-and-mobile test --project android --project web-only
