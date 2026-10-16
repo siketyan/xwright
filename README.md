@@ -97,7 +97,9 @@ project.
 
 - `playwright(options)` launches a browser per worker. Every test gets a fresh browser context and page, or
   `isolation: "file"` shares them in a file. It takes `browserName`, `launchOptions` and the options of a browser
-  context such as `baseURL`. The handle is `{ browser, context, page, expect }`.
+  context such as `baseURL`. The handle is `{ browser, context, page, expect }`. When traced, every call of
+  Playwright's API is an action, with the logs, DOM snapshots, screenshots, console messages and network of
+  Playwright's live trace.
 - `mobilewright(options)` borrows a device from Mobilewright's device pool for each file, installs `installApps` once
   per device, and relaunches `bundleId` before each test. It takes the options of Mobilewright, such as `platform`
   and `driver`. The handle is `{ device, screen, expect }`.

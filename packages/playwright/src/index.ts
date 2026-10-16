@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
 	type Browser,
 	type BrowserContext,
@@ -9,7 +12,8 @@ import {
 	webkit,
 } from "playwright";
 import { expect } from "playwright/test";
-import { defineAdapter } from "xwright";
+import { defineAdapter, type Tracer } from "xwright";
+import { ApiCallRecorder, LiveTraceConverter } from "./trace.js";
 
 /** The options of {@link playwright}. */
 export interface PlaywrightOptions extends BrowserContextOptions {
@@ -35,6 +39,16 @@ export class PlaywrightHandle {
 	_context: BrowserContext | undefined;
 	/** @internal */
 	_page: Page | undefined;
+	/** @internal */
+	_tracesDir = mkdtempSync(join(tmpdir(), "xwright-playwright-"));
+	/** @internal */
+	_recorder: ApiCallRecorder | undefined;
+	/** @internal */
+	_converter: LiveTraceConverter | undefined;
+	/** @internal */
+	_tracing = false;
+	/** @internal */
+	_chunk = 0;
 
 	/** The browser, shared in the worker. */
 	get browser(): Browser {
@@ -74,15 +88,60 @@ async function open(
 	handle._page = await handle._context.newPage();
 }
 
+/**
+ * Starts a chunk of Playwright's live trace of the context for the test, when the test is recorded, and converts it
+ * into the track of the device as it is written.
+ */
+async function startTrace(
+	handle: PlaywrightHandle,
+	trace: Tracer,
+): Promise<void> {
+	const context = handle._context;
+	if (context === undefined || !trace.recording) {
+		return;
+	}
+	handle._chunk += 1;
+	const name = `trace-${process.pid}-${handle._chunk}`;
+	if (handle._tracing) {
+		await context.tracing.startChunk({ name });
+	} else {
+		await context.tracing.start({
+			name,
+			live: true,
+			screenshots: true,
+			snapshots: true,
+		});
+		handle._tracing = true;
+	}
+	handle._converter = new LiveTraceConverter(trace, handle._tracesDir, name);
+}
+
+/** Stops the chunk of the trace, and converts the rest of it. */
+async function stopTrace(handle: PlaywrightHandle): Promise<void> {
+	const converter = handle._converter;
+	handle._converter = undefined;
+	if (converter === undefined) {
+		return;
+	}
+	await handle._context?.tracing.stopChunk();
+	converter.stop();
+}
+
 async function close(handle: PlaywrightHandle): Promise<void> {
+	await stopTrace(handle);
 	const context = handle._context;
 	handle._context = undefined;
 	handle._page = undefined;
+	handle._tracing = false;
 	await context?.close();
 }
 
 /**
  * The official adapter for the web, which drives a browser through Playwright.
+ *
+ * When the device is traced, every call of Playwright's API is an action on its track, and Playwright's live trace of
+ * the context is converted into the track: the logs and the DOM snapshots of the calls, screenshots, console messages
+ * and the network.
  *
  * ```ts
  * devices: { web: { adapter: playwright({ browserName: "chromium", baseURL: "http://localhost:3000" }) } }
@@ -93,28 +152,36 @@ export const playwright = defineAdapter<
 	PlaywrightHandle
 >({
 	name: "@xwright/playwright",
-	async create({ options = {} }) {
+	async create({ options = {}, trace }) {
 		const handle = new PlaywrightHandle();
+		handle._recorder = new ApiCallRecorder(trace);
+		handle._recorder.attach();
 		handle._browser = await browserTypes[
 			options.browserName ?? "chromium"
-		].launch(options.launchOptions);
+		].launch({ ...options.launchOptions, tracesDir: handle._tracesDir });
 		return handle;
 	},
 	async dispose(handle) {
 		await close(handle);
 		await handle._browser?.close();
+		handle._recorder?.detach();
+		rmSync(handle._tracesDir, { recursive: true, force: true });
 	},
 	async beforeAll(handle, { options = {} }) {
+		handle._recorder?.attach();
 		if (options.isolation === "file") {
 			await open(handle, options);
 		}
 	},
-	async beforeEach(handle, { options = {} }) {
+	async beforeEach(handle, { options = {}, trace }) {
+		handle._recorder?.attach();
 		if (options.isolation !== "file") {
 			await open(handle, options);
 		}
+		await startTrace(handle, trace);
 	},
 	async afterEach(handle, { options = {} }) {
+		await stopTrace(handle);
 		if (options.isolation !== "file") {
 			await close(handle);
 		}

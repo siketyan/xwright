@@ -132,8 +132,40 @@ describe("createTracer", () => {
 		]);
 	});
 
+	it("does not take an ended action as the parent", async () => {
+		const { track, read } = setup();
+		const tracer = createTracer(() => track);
+		let later: (() => void) | undefined;
+		await tracer.action({ title: "connect" }, () => {
+			// A callback that runs after the action ended, in its async context.
+			later = () => tracer.begin({ title: "event" });
+		});
+		later?.();
+		expect(read()[2]).toMatchObject({ type: "before", title: "event" });
+		expect(read()[2]).not.toHaveProperty("parentId");
+	});
+
+	it("copies files and appends raw events", () => {
+		const { track, read } = setup();
+		const tracer = createTracer(() => track);
+		expect(tracer.recording).toBe(true);
+		const file = tracer.copyResource(import.meta.filename, "copied.ts");
+		expect(file).toBe("phone/resources/copied.ts");
+		tracer.raw({ type: "frame-snapshot", snapshot: { file } });
+		expect(read()).toEqual([
+			{
+				type: "frame-snapshot",
+				snapshot: { file: "phone/resources/copied.ts" },
+			},
+		]);
+	});
+
 	it("records nothing without a track", async () => {
 		const tracer = createTracer(() => undefined);
+		expect(tracer.recording).toBe(false);
+		expect(
+			tracer.copyResource(import.meta.filename, "copied.ts"),
+		).toBeUndefined();
 		expect(await tracer.action({ title: "tap" }, () => 1)).toBe(1);
 	});
 });
