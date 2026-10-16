@@ -114,3 +114,47 @@ export function trackColor(trace: Trace, track: string): string {
 	const index = trace.tracks.findIndex((t) => t.name === track);
 	return palette[Math.max(index, 0) % palette.length] ?? "#6b7280";
 }
+
+/** A DOM snapshot of the main frame to show for an action, with the action it belongs to. */
+export interface DomView {
+	phase: string;
+	snapshot: Snapshot;
+	action: Action;
+}
+
+/**
+ * The DOM snapshots of the main frame of the action, one per phase; or, for an action without them such as a step,
+ * the ones of the last descendant that has them.
+ */
+export function domViews(action: Action): DomView[] {
+	const of = (owner: Action) => {
+		const byPhase = new Map<string, DomView>();
+		for (const snapshot of owner.snapshots) {
+			const isMainFrame = (
+				snapshot.payload as { isMainFrame?: boolean } | undefined
+			)?.isMainFrame;
+			if (snapshot.kind === "frame-snapshot" && isMainFrame !== false) {
+				byPhase.set(snapshot.phase ?? "action", {
+					phase: snapshot.phase ?? "action",
+					snapshot,
+					action: owner,
+				});
+			}
+		}
+		return [...byPhase.values()].sort(
+			(a, b) => (PHASE_ORDER[a.phase] ?? 1) - (PHASE_ORDER[b.phase] ?? 1),
+		);
+	};
+	const own = of(action);
+	if (own.length > 0) {
+		return own;
+	}
+	let last: DomView[] = [];
+	for (const descendant of descendants(action)) {
+		const views = of(descendant);
+		if (views.length > 0) {
+			last = views;
+		}
+	}
+	return last;
+}

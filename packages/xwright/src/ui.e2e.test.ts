@@ -207,6 +207,89 @@ it("opens a trace dropped on it, also from an artifact with traces in it", async
 	}
 }, 60_000);
 
+/** Writes a trace of a click on a page with a stylesheet, with the DOM snapshots before and after it. */
+function makeWebTrace(): string {
+	const dir = join(mkdtempSync(join(tmpdir(), "xwright-ui-")), "xwright-trace");
+	const trace = new TraceDirectory(dir, undefined, {
+		wallTime: 0,
+		monotonicTime: 1000,
+	});
+	const web = trace.deviceTrack({ name: "web", adapter: "fake", trace: "on" });
+	const css = web?.resource("button { color: rgb(255, 0, 0); }", "text/plain");
+	web?.append({
+		type: "resource",
+		id: "resource@1",
+		resourceType: "xwright.http@1",
+		target: "https://app.test/app.css",
+		status: 200,
+		startTime: 1005,
+		endTime: 1006,
+		response: {
+			payload: { status: 200, content: { _file: css, mimeType: "text/css" } },
+		},
+	});
+	web?.append({
+		type: "before",
+		callId: "call@1",
+		startTime: 1010,
+		title: "click",
+		class: "Frame",
+		method: "click",
+	});
+	const snapshot = (phase: string, label: string) => ({
+		type: "frame-snapshot",
+		snapshot: {
+			callId: "call@1",
+			phase,
+			pageId: "page",
+			frameId: "frame",
+			frameUrl: "https://app.test/",
+			html: [
+				"HTML",
+				{},
+				["HEAD", {}, ["LINK", { rel: "stylesheet", href: "/app.css" }]],
+				["BODY", {}, ["BUTTON", { onclick: "" }, label]],
+			],
+			viewport: { width: 800, height: 600 },
+			timestamp: phase === "before" ? 1011 : 1019,
+			isMainFrame: true,
+			resourceOverrides: [],
+		},
+	});
+	web?.append(snapshot("before", "Click"));
+	web?.append(snapshot("after", "Clicked"));
+	web?.append({ type: "after", callId: "call@1", endTime: 1020 });
+	trace.close();
+	return dir;
+}
+
+it("renders the DOM snapshots of an action with the stylesheets of the trace", async () => {
+	const served = await serveTrace(openTrace(makeWebTrace()));
+	const browser = await chromium.launch(
+		existsSync(executable) ? { executablePath: executable } : {},
+	);
+	try {
+		const page = await browser.newPage();
+		await page.goto(served.url);
+		await page.getByRole("button", { name: "click", exact: true }).click();
+
+		// The snapshot after the action is shown first.
+		await expect(
+			page.getByRole("button", { name: "DOM after" }),
+		).toHaveAttribute("aria-pressed", "true");
+		const snapshot = page.frameLocator('iframe[title="DOM snapshot"]');
+		const button = snapshot.getByRole("button");
+		await expect(button).toHaveText("Clicked");
+		await expect(button).toHaveCSS("color", "rgb(255, 0, 0)");
+
+		await page.getByRole("button", { name: "DOM before" }).click();
+		await expect(button).toHaveText("Click");
+	} finally {
+		await browser.close();
+		served.server.close();
+	}
+}, 60_000);
+
 it("follows a trace while it is written", async () => {
 	const dir = join(mkdtempSync(join(tmpdir(), "xwright-ui-")), "xwright-trace");
 	const trace = new TraceDirectory(

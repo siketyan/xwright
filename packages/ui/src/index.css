@@ -441,3 +441,32 @@ header h1 {
 .status-running {
 	color: #2563eb;
 }
+
+.snapshot-views {
+	display: flex;
+	gap: 4px;
+	margin: 0 0 8px;
+	padding: 0;
+	border: none;
+}
+
+.snapshot-views button {
+	padding: 2px 10px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+}
+
+.snapshot-views button[aria-pressed="true"] {
+	background: var(--selected);
+}
+
+.dom-snapshot {
+	position: relative;
+	overflow: hidden;
+}
+
+.dom-snapshot iframe {
+	border: 1px solid var(--border);
+	background: #ffffff;
+	transform-origin: 0 0;
+}
