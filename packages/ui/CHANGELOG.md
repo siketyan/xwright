@@ -1,5 +1,15 @@
 # @xwright/ui
 
+## 0.2.0
+
+### Minor Changes
+
+- [#38](https://github.com/siketyan/xwright/pull/38) [`7adeb99`](https://github.com/siketyan/xwright/commit/7adeb990417fa4bbafb7a9ab02c05e492433b6a7) Thanks [@siketyan](https://github.com/siketyan)! - `xwright test --ui` filters the tests by words, statuses, projects and tags, and "Run filtered" runs only the tests in the list.
+
+### Patch Changes
+
+- [#36](https://github.com/siketyan/xwright/pull/36) [`b73afcb`](https://github.com/siketyan/xwright/commit/b73afcbd9e546b67867062cc791af3735186a888) Thanks [@siketyan](https://github.com/siketyan)! - Add a README to the package.
+
 ## 0.1.0
 
 ### Minor Changes
