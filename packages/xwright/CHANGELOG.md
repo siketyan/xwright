@@ -1,5 +1,16 @@
 # xwright
 
+## 0.4.0
+
+### Minor Changes
+
+- [#53](https://github.com/siketyan/xwright/pull/53) [`9583933`](https://github.com/siketyan/xwright/commit/9583933ae0df9363d5b295d97965e574f334057c) Thanks [@siketyan](https://github.com/siketyan)! - Add the `tree` reporter, which prints each test with its steps as a tree when the test ends, so that the output of tests running in parallel does not interleave. On GitHub Actions, the steps of each test are in a group of the log, titled by the test with its status colored, with the errors after it.
+
+### Patch Changes
+
+- Updated dependencies [[`6d8eaa0`](https://github.com/siketyan/xwright/commit/6d8eaa0ab985a84793f27d622bbd6df3bc7fc8ff)]:
+  - @xwright/ui@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
