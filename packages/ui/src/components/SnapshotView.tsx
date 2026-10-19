@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { dataSnapshots, domViews, previewOf } from "../model/select.ts";
 import type { Action, Trace } from "../model/trace.ts";
+import common from "./common.module.css";
+import { cx } from "./cx.ts";
 import { DomSnapshot } from "./DomSnapshot.tsx";
+import styles from "./SnapshotView.module.css";
 
 /** The screen of the device of the selected action, and the snapshots of it that are data. */
 export function SnapshotView({
@@ -13,7 +16,7 @@ export function SnapshotView({
 }) {
 	if (action === undefined) {
 		return (
-			<section className="snapshot empty">
+			<section className={cx(styles.snapshot, common.empty)}>
 				Select an action to see the device.
 			</section>
 		);
@@ -36,9 +39,9 @@ function ActionSnapshots({ trace, action }: { trace: Trace; action: Action }) {
 	);
 	const dom = doms.find((candidate) => candidate.phase === view);
 	return (
-		<section className="snapshot" aria-label="Snapshot">
+		<section className={styles.snapshot} aria-label="Snapshot">
 			{views.length > 1 && (
-				<fieldset className="snapshot-views" aria-label="Views">
+				<fieldset className={styles.views} aria-label="Views">
 					{views.map((name) => (
 						<button
 							key={name}
@@ -58,13 +61,13 @@ function ActionSnapshots({ trace, action }: { trace: Trace; action: Action }) {
 					point={dom.action.input?.point}
 				/>
 			) : preview === undefined ? (
-				<p className="empty">No screen was recorded for this action.</p>
+				<p className={common.empty}>No screen was recorded for this action.</p>
 			) : (
 				<figure>
 					<figcaption>
 						{preview.track} · {preview.label}
 					</figcaption>
-					<div className="screen">
+					<div className={styles.screen}>
 						<img
 							src={trace.url(preview.file)}
 							alt={`The screen of ${preview.track}`}
@@ -73,7 +76,7 @@ function ActionSnapshots({ trace, action }: { trace: Trace; action: Action }) {
 							preview.width !== undefined &&
 							preview.height !== undefined && (
 								<span
-									className="point"
+									className={styles.point}
 									style={{
 										left: `${(preview.point.x / preview.width) * 100}%`,
 										top: `${(preview.point.y / preview.height) * 100}%`,

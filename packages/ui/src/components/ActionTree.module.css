@@ -1,0 +1,45 @@
+.actions {
+	overflow: auto;
+}
+
+.actions ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.action {
+	display: flex;
+	align-items: center;
+	height: 24px;
+}
+
+.selected {
+	background: var(--selected);
+}
+
+.twisty {
+	width: 16px;
+	flex: none;
+	color: var(--muted);
+}
+
+.title {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	text-align: left;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	padding: 0;
+}
+
+.failed .title {
+	color: var(--error);
+}
+
+.duration {
+	color: var(--muted);
+	padding: 0 8px;
+}

@@ -1,0 +1,10 @@
+.domSnapshot {
+	position: relative;
+	overflow: hidden;
+}
+
+.domSnapshot iframe {
+	border: 1px solid var(--border);
+	background: #ffffff;
+	transform-origin: 0 0;
+}

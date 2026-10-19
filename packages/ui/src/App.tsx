@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import styles from "./App.module.css";
+import common from "./components/common.module.css";
 import { Runner } from "./components/Runner.tsx";
 import { TraceList } from "./components/TraceList.tsx";
 import { TraceView } from "./components/TraceView.tsx";
@@ -133,9 +135,9 @@ export function App() {
 	}, [openFile, fail]);
 
 	return (
-		<div className="root">
+		<div className={styles.root}>
 			{state.kind === "loading" && (
-				<p className="message">Loading the trace…</p>
+				<p className={common.message}>Loading the trace…</p>
 			)}
 			{state.kind === "empty" && (
 				<DropZone
@@ -148,7 +150,9 @@ export function App() {
 				<TraceView key={state.trace.meta.test?.id} trace={state.trace} />
 			)}
 			{state.kind === "runner" && <Runner initial={state.state} />}
-			{dragging && <div className="drop-overlay">Drop a trace to open it</div>}
+			{dragging && (
+				<div className={styles.dropOverlay}>Drop a trace to open it</div>
+			)}
 		</div>
 	);
 }
@@ -161,14 +165,14 @@ function DropZone({
 	onFile(file: File): void;
 }) {
 	return (
-		<section className="drop-zone">
+		<section className={styles.dropZone}>
 			<h1>Xwright Trace Viewer</h1>
 			<p>
 				Drop a ZIP file of a trace here, such as one of{" "}
 				<code>xwright export-trace</code> or the <code>traces</code> artifact of
 				CI.
 			</p>
-			<label className="file-button">
+			<label className={styles.fileButton}>
 				Open a file
 				<input
 					type="file"
@@ -182,7 +186,7 @@ function DropZone({
 				/>
 			</label>
 			{error !== undefined && (
-				<p role="alert" className="error">
+				<p role="alert" className={common.error}>
 					{error}
 				</p>
 			)}

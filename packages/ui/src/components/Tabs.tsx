@@ -6,6 +6,8 @@ import {
 	trackColor,
 } from "../model/select.ts";
 import type { Action, Trace } from "../model/trace.ts";
+import common from "./common.module.css";
+import styles from "./Tabs.module.css";
 
 const TABS = ["Call", "Log", "Network", "Source", "Errors"] as const;
 type Tab = (typeof TABS)[number];
@@ -22,8 +24,8 @@ export function Tabs({
 	const errors =
 		trace.errors.length + [...allActions(trace)].filter((a) => a.error).length;
 	return (
-		<section className="tabs">
-			<div role="tablist">
+		<section className={styles.tabs}>
+			<div role="tablist" className={styles.tablist}>
 				{TABS.map((name) => (
 					<button
 						key={name}
@@ -40,7 +42,7 @@ export function Tabs({
 					</button>
 				))}
 			</div>
-			<div role="tabpanel" aria-label={tab}>
+			<div role="tabpanel" aria-label={tab} className={styles.panel}>
 				{tab === "Call" && <CallTab trace={trace} action={action} />}
 				{tab === "Log" && <LogTab trace={trace} action={action} />}
 				{tab === "Network" && <NetworkTab trace={trace} action={action} />}
@@ -59,7 +61,7 @@ function CallTab({
 	action: Action | undefined;
 }) {
 	if (action === undefined) {
-		return <p className="empty">Select an action.</p>;
+		return <p className={common.empty}>Select an action.</p>;
 	}
 	const rows: [string, string][] = [
 		["Track", action.track],
@@ -71,7 +73,7 @@ function CallTab({
 		],
 	];
 	return (
-		<div className="call">
+		<div className={styles.call}>
 			<h2>{action.title}</h2>
 			<dl>
 				{rows.map(([key, value]) => (
@@ -96,7 +98,7 @@ function CallTab({
 			{action.error !== undefined && (
 				<>
 					<h3>Error</h3>
-					<pre className="error">
+					<pre className={common.error}>
 						{action.error.stack ?? action.error.message}
 					</pre>
 				</>
@@ -137,22 +139,29 @@ function LogTab({
 			})),
 	].sort((a, b) => a.time - b.time);
 	if (lines.length === 0) {
-		return <p className="empty">No logs.</p>;
+		return <p className={common.empty}>No logs.</p>;
 	}
 	return (
-		<ol className="log">
+		<ol className={styles.log}>
 			{lines.map((line, i) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity of their own.
-				<li key={i} className={`level-${line.level}`}>
-					<span className="time">
+				<li
+					// biome-ignore lint/suspicious/noArrayIndexKey: lines have no identity of their own.
+					key={i}
+					className={
+						line.level === "error" || line.level === "stderr"
+							? common.error
+							: undefined
+					}
+				>
+					<span className={styles.time}>
 						{formatDuration(line.time - trace.startTime)}
 					</span>
 					<span
-						className="dot"
+						className={common.dot}
 						style={{ background: trackColor(trace, line.track) }}
 						title={line.track}
 					/>
-					<span className="text">{line.text}</span>
+					<span className={styles.text}>{line.text}</span>
 				</li>
 			))}
 		</ol>
@@ -167,12 +176,12 @@ function NetworkTab({
 	action: Action | undefined;
 }) {
 	if (trace.resources.length === 0) {
-		return <p className="empty">No communications.</p>;
+		return <p className={common.empty}>No communications.</p>;
 	}
 	const start = action?.startTime ?? Number.NEGATIVE_INFINITY;
 	const end = action?.endTime ?? Number.POSITIVE_INFINITY;
 	return (
-		<table className="network">
+		<table className={styles.network}>
 			<thead>
 				<tr>
 					<th>Device</th>
@@ -188,8 +197,8 @@ function NetworkTab({
 						key={`${resource.track}-${resource.id}`}
 						className={
 							resource.endTime >= start && resource.startTime <= end
-								? ""
-								: "dimmed"
+								? undefined
+								: styles.dimmed
 						}
 					>
 						<td>{resource.track}</td>
@@ -224,22 +233,22 @@ function SourceTab({ action }: { action: Action | undefined }) {
 	}, [frame]);
 
 	if (frame === undefined) {
-		return <p className="empty">No source for this action.</p>;
+		return <p className={common.empty}>No source for this action.</p>;
 	}
 	return (
-		<div className="source">
-			<p className="source-path">
+		<div>
+			<p className={styles.sourcePath}>
 				{frame.file}:{frame.line}
 			</p>
 			{source === undefined ? null : source === "" ? (
-				<p className="empty">The source cannot be read.</p>
+				<p className={common.empty}>The source cannot be read.</p>
 			) : (
-				<ol className="source-lines">
+				<ol className={styles.sourceLines}>
 					{source.split("\n").map((line, i) => (
 						<li
 							// biome-ignore lint/suspicious/noArrayIndexKey: lines of a file are identified by their numbers.
 							key={i}
-							className={i + 1 === frame.line ? "current" : ""}
+							aria-current={i + 1 === frame.line ? "true" : undefined}
 							ref={
 								i + 1 === frame.line
 									? (element) => element?.scrollIntoView({ block: "center" })
@@ -258,13 +267,13 @@ function SourceTab({ action }: { action: Action | undefined }) {
 function ErrorsTab({ trace }: { trace: Trace }) {
 	const failed = [...allActions(trace)].filter((action) => action.error);
 	if (trace.errors.length === 0 && failed.length === 0) {
-		return <p className="empty">No errors.</p>;
+		return <p className={common.empty}>No errors.</p>;
 	}
 	return (
-		<div className="errors">
+		<div className={styles.errors}>
 			{trace.errors.map((error, i) => (
 				// biome-ignore lint/suspicious/noArrayIndexKey: errors have no identity of their own.
-				<pre key={i} className="error">
+				<pre key={i} className={common.error}>
 					{error.stack ?? error.message}
 				</pre>
 			))}
@@ -273,7 +282,7 @@ function ErrorsTab({ trace }: { trace: Trace }) {
 					<h3>
 						{action.track}: {action.title}
 					</h3>
-					<pre className="error">{action.error?.message}</pre>
+					<pre className={common.error}>{action.error?.message}</pre>
 				</div>
 			))}
 		</div>

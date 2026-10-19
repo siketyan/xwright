@@ -7,6 +7,9 @@ import {
 	trackColor,
 } from "../model/select.ts";
 import type { Action, ScreencastFrame, Trace } from "../model/trace.ts";
+import common from "./common.module.css";
+import { cx } from "./cx.ts";
+import styles from "./Timeline.module.css";
 
 interface Props {
 	trace: Trace;
@@ -98,13 +101,13 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 	);
 
 	return (
-		<section className="timeline" aria-label="Timeline" ref={section}>
-			<div className="timeline-row timeline-axis">
-				<div className="timeline-label">
+		<section className={styles.timeline} aria-label="Timeline" ref={section}>
+			<div className={cx(styles.row, styles.axis)}>
+				<div className={styles.label}>
 					{hasFilmstrip && (
 						<button
 							type="button"
-							className="timeline-toggle"
+							className={styles.toggle}
 							aria-pressed={showScreenshots}
 							title="Show the screens of the devices over time"
 							onClick={toggleScreenshots}
@@ -113,11 +116,11 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 						</button>
 					)}
 				</div>
-				<div className="timeline-lane">
+				<div className={styles.lane}>
 					{ticks.map((tick) => (
 						<span
 							key={tick}
-							className="timeline-tick"
+							className={styles.tick}
 							style={{ left: `${(tick / span) * 100}%` }}
 						>
 							{formatDuration(tick)}
@@ -129,7 +132,11 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 				const frames = filmstrips.get(track.name) ?? [];
 				const actions = rows.get(track.name) ?? [];
 				const bar = (action: Action) => ({
-					className: `timeline-bar${action === selected ? " selected" : ""}${action.error ? " failed" : ""}`,
+					className: cx(
+						styles.bar,
+						action === selected && styles.selected,
+						action.error && styles.failed,
+					),
 					title: `${action.title} (${formatDuration((action.endTime ?? trace.endTime) - action.startTime)})`,
 					style: {
 						left: left(action.startTime),
@@ -143,17 +150,20 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 				return (
 					<div
 						key={track.name}
-						className={`timeline-row${showScreenshots && frames.length > 0 ? " timeline-screens" : ""}`}
+						className={cx(
+							styles.row,
+							showScreenshots && frames.length > 0 && styles.screens,
+						)}
 						data-track={track.name}
 					>
-						<div className="timeline-label" title={track.adapter ?? "the test"}>
+						<div className={styles.label} title={track.adapter ?? "the test"}>
 							<span
-								className="dot"
+								className={common.dot}
 								style={{ background: trackColor(trace, track.name) }}
 							/>
 							{track.name}
 						</div>
-						<div className="timeline-lane">
+						<div className={styles.lane}>
 							{showScreenshots && frames.length > 0 ? (
 								<ScreenBars
 									trace={trace}
@@ -219,7 +229,7 @@ function ScreenBars({
 	if (aspect === undefined) {
 		return (
 			<img
-				className="timeline-probe"
+				className={styles.probe}
 				src={trace.url(first.file)}
 				alt=""
 				onLoad={(event) => {
@@ -241,14 +251,14 @@ function ScreenBars({
 			<button
 				key={action.callId}
 				type="button"
-				className={`${className} timeline-screen-bar`}
+				className={cx(className, styles.screenBar)}
 				{...props}
 			>
 				{framesAt(frames, action.startTime, end, count).map((frame, slot) => (
 					<img
 						// biome-ignore lint/suspicious/noArrayIndexKey: a frame can fill more than one slot, which are in order.
 						key={slot}
-						className="timeline-screen-frame"
+						className={styles.frame}
 						src={trace.url(frame.file)}
 						alt=""
 						style={{ width: frameWidth }}
