@@ -11,6 +11,9 @@
 			"path": "./packages/mobilewright"
 		},
 		{
+			"path": "./packages/appium"
+		},
+		{
 			"path": "./examples/laundry/fake-washer"
 		}
 	]
