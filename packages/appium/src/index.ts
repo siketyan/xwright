@@ -1,6 +1,6 @@
+import { defineAdapter } from "@xwright/core";
 import { expect } from "expect-webdriverio";
 import { remote } from "webdriverio";
-import { defineAdapter } from "xwright";
 import { type CommandEmitter, traceCommands } from "./trace.js";
 
 /** The options of a session of WebdriverIO, such as `logLevel` and `connectionRetryTimeout`. */

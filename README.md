@@ -8,7 +8,7 @@ through adapters.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./docs/images/trace-dark.png">
-  <img alt="The trace of a test of the coin laundry example on CI: the web, an iOS simulator and a fake washer on one timeline, with the screen of the app on the phone" src="./docs/images/trace-light.png">
+  <img alt="The traces of the tests of the coin laundry example on CI: the list of the tests, and the web, an iOS simulator and a fake washer of one test on one timeline, with the screens of the devices while they ran and the screen of the app on the phone" src="./docs/images/trace-light.png">
 </picture>
 
 The trace of [`examples/laundry`](./examples/laundry) on CI: a test pays and starts a wash on an iOS simulator, the
@@ -21,7 +21,8 @@ fake washer runs it, and the dashboard on the web follows.
 
 | Package | Description |
 | --- | --- |
-| [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()`, and the adapter SDK |
+| [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()` |
+| [`@xwright/core`](./packages/core) | The SDK to write adapters |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
 | [`@xwright/appium`](./packages/appium) | The official adapter for Appium, built on WebdriverIO |
@@ -92,6 +93,32 @@ that has all the devices it uses, and is skipped in the others.
 See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example, and
 [`examples/laundry`](./examples/laundry) for an app tested on the web, a phone and a fake washer.
 
+### Reporter
+
+The `tree` reporter of Xwright prints each test with its steps, the calls of the APIs and the assertions as a tree
+when the test ends, so that the output of tests running in parallel does not interleave. On GitHub Actions, the steps
+of each test are in a group of the log, with the errors after it. Statuses and errors are colored on a terminal and
+on GitHub Actions, unless `NO_COLOR` is set.
+
+```ts
+export default defineConfig({
+  reporter: [["tree"]],
+});
+```
+
+```text
+✓ [android] › washing.spec.ts:12 › starts a wash on the app (21.0s)
+  ├─ Before Hooks (5.2s)
+  │  └─ device.launchApp() (4.8s)
+  ├─ pay on the app (3.4s)
+  │  ├─ locator.tap() (612ms)
+  │  └─ expect.toBeVisible() (1.2s)
+  └─ the cycle finishes (1.5s)
+     └─ expect.toBeVisible() (1.2s)
+```
+
+It is also `--reporter tree` of `xwright test`, and can be used with the other reporters of Playwright Test.
+
 ### Trace
 
 Set `trace` on a device to record what it did: `on`, `retain-on-failure` (kept only when the test failed),
@@ -128,9 +155,10 @@ const token = secret(await issueToken());
 Screenshots are images, and are kept as they are; a secret shown on a screen, other than in a password field, stays
 in its screenshots.
 
-`xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser. Without a path, it opens a
-ZIP file dropped on the page, also the `traces` artifact of CI with the traces in it. A trace still being written is
-followed until its test ends.
+`xwright show-trace [path]` shows the traces at the path in the browser: a trace, its directory or a ZIP file of it, a
+directory with traces such as `test-results` (the default), or a ZIP file with traces such as the `traces` artifact of
+CI. The tests of several traces are listed as in `xwright test --ui`, with the same filters, to show the trace of each.
+Without traces, it opens a ZIP file dropped on the page. A trace still being written is followed until its test ends.
 
 `xwright test --ui` lists the tests in the browser to run them, all, filtered by words, statuses, projects and tags,
 or one at a time, and shows the trace of each test as it runs. Each run is a new `xwright test` with the same arguments, so the changes to the tests are picked up.
@@ -170,8 +198,7 @@ indices 0.
 - `mobilewright(options)` borrows a device from Mobilewright's device pool for each file, installs `installApps` once
   per device, and relaunches `bundleId` before each test. It takes the options of Mobilewright, such as `platform`
   and `driver`. The handle is `{ device, screen, expect }`. When traced, each operation such as a tap is an action,
-  with the commands of the driver under it and a screenshot after it (`screenshots`), and the view hierarchy is
-  recorded when a test failed (`viewTree`).
+  with a screenshot after it (`screenshots`), and the view hierarchy is recorded when a test failed (`viewTree`).
 
 - `appium(options)` creates a session of an Appium server per worker through WebdriverIO, and launches `appId` again
   before each test. It takes the `url` of the server, the `capabilities` of the session and `remoteOptions` of
@@ -180,12 +207,14 @@ indices 0.
 
 ### Adapters
 
-Any other device comes in through an adapter, written outside this repository with `defineAdapter`. Every hook is
+Any other device comes in through an adapter, written outside this repository with `defineAdapter` of
+`@xwright/core`. An adapter depends on `@xwright/core` instead of `xwright`, so that it does not need a release for
+every release of `xwright`; `xwright` exports the same, for an adapter written next to the tests. Every hook is
 optional except `create`, and the hooks run outside the user's. `createOnce` and `disposeOnce` run once in the whole
 run, in the runner, and the value `createOnce` returns reaches every worker as `ctx.shared`.
 
 ```ts
-import { defineAdapter } from "xwright";
+import { defineAdapter } from "@xwright/core";
 
 export const band = defineAdapter<{ address: string }, BandHandle>({
   name: "my-band",

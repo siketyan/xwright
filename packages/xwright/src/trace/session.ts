@@ -1,7 +1,7 @@
 import { join } from "node:path";
+import type { Tracer } from "@xwright/core";
 import type { TestInfo, WorkerInfo } from "playwright/test";
 import type { ResolvedDevice, TraceMode } from "../config.js";
-import type { Tracer } from "../trace.js";
 import { hostTime } from "./clock.js";
 import { TraceDirectory, type Track } from "./directory.js";
 import { createTracer } from "./tracer.js";

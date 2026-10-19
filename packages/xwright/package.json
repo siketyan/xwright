@@ -1,6 +1,6 @@
 {
 	"name": "xwright",
-	"version": "0.2.0",
+	"version": "0.4.0",
 	"description": "Cross-device end-to-end testing framework built on Playwright Test",
 	"license": "Apache-2.0",
 	"repository": {
@@ -16,6 +16,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./reporters/tree": {
+			"types": "./dist/reporters/tree.d.ts",
+			"default": "./dist/reporters/tree.js"
 		}
 	},
 	"bin": {
@@ -25,6 +29,7 @@
 		"dist"
 	],
 	"dependencies": {
+		"@xwright/core": "workspace:^",
 		"@xwright/ui": "workspace:*",
 		"playwright": "1.63.0"
 	}

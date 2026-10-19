@@ -1,66 +1,9 @@
+import type { Tracer } from "@xwright/core";
 import type { Device, MobilewrightDriver } from "mobilewright";
 import { test } from "playwright/test";
-import type { Tracer } from "xwright";
 
 /** When to take a screenshot around an operation of Mobilewright. */
 export type ScreenshotPhase = "before" | "after";
-
-/** The methods of a driver that are not commands to the device. */
-const NOT_COMMANDS = new Set([
-	"allocate",
-	"release",
-	"prepare",
-	"dispose",
-	"observer",
-	"webViewBridge",
-]);
-
-/**
- * Wraps a driver, so that every command it sends to the device is an action on the track, under the operation of
- * Mobilewright that sent it.
- */
-export function traceDriver(
-	driver: MobilewrightDriver,
-	trace: Tracer,
-): MobilewrightDriver {
-	return new Proxy(driver, {
-		get(target, property, receiver) {
-			const value: unknown = Reflect.get(target, property, receiver);
-			if (
-				typeof value !== "function" ||
-				typeof property !== "string" ||
-				NOT_COMMANDS.has(property)
-			) {
-				return value;
-			}
-			return (...args: unknown[]) =>
-				trace.action(
-					{
-						title: property,
-						class: "Driver",
-						method: property,
-						params: { args: args.map(describe) },
-						stack: [],
-					},
-					() => (value as (...a: unknown[]) => unknown).apply(target, args),
-				);
-		},
-	});
-}
-
-/** Describes an argument of a command for the trace, without bytes or functions. */
-function describe(value: unknown): unknown {
-	if (value instanceof Uint8Array) {
-		return `<${value.byteLength} bytes>`;
-	}
-	if (value instanceof RegExp) {
-		return value.toString();
-	}
-	if (typeof value === "function") {
-		return "<function>";
-	}
-	return value;
-}
 
 /**
  * Makes the step function of Mobilewright, which runs each operation such as a tap or an assertion. The operation is
@@ -76,7 +19,6 @@ export function createStepFn(
 			return;
 		}
 		try {
-			// The driver itself, so that the screenshot is not a command of the operation.
 			trace.snapshot({
 				type: "xwright.screenshot@1",
 				phase,

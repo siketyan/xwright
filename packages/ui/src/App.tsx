@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Runner } from "./components/Runner.tsx";
+import { TraceList } from "./components/TraceList.tsx";
 import { TraceView } from "./components/TraceView.tsx";
+import { fetchTraces, openFound, type TraceEntry } from "./model/collection.ts";
 import { watchTrace } from "./model/live.ts";
 import { fetchRunnerState, type RunnerState } from "./model/runner.ts";
 import {
-	type FoundTrace,
 	findTraces,
 	httpSource,
 	readZip,
@@ -15,7 +16,7 @@ import type { Trace } from "./model/trace.ts";
 type State =
 	| { kind: "loading" }
 	| { kind: "empty"; error?: string }
-	| { kind: "pick"; name: string; traces: FoundTrace[] }
+	| { kind: "list"; entries: TraceEntry[] }
 	| { kind: "trace"; trace: Trace }
 	| { kind: "runner"; state: RunnerState };
 
@@ -74,7 +75,8 @@ export function App() {
 			if (traces.length === 1) {
 				await open(await first.open());
 			} else {
-				setState({ kind: "pick", name: file.name, traces });
+				document.title = `${file.name} · Xwright`;
+				setState({ kind: "list", entries: await openFound(traces) });
 			}
 		},
 		[open],
@@ -86,6 +88,12 @@ export function App() {
 			const runner = await fetchRunnerState();
 			if (runner !== undefined) {
 				setState({ kind: "runner", state: runner });
+				return;
+			}
+			// Served by `xwright show-trace` with more than one trace.
+			const entries = await fetchTraces();
+			if (entries !== undefined) {
+				setState({ kind: "list", entries });
 				return;
 			}
 			// Without a trace on the server, such as `xwright show-trace` without a path, wait for one to be dropped.
@@ -135,23 +143,7 @@ export function App() {
 					onFile={(file) => openFile(file).catch(fail)}
 				/>
 			)}
-			{state.kind === "pick" && (
-				<section className="picker">
-					<h1>Traces in {state.name}</h1>
-					<ul>
-						{state.traces.map((found) => (
-							<li key={found.label}>
-								<button
-									type="button"
-									onClick={() => found.open().then(open).catch(fail)}
-								>
-									{found.label}
-								</button>
-							</li>
-						))}
-					</ul>
-				</section>
-			)}
+			{state.kind === "list" && <TraceList entries={state.entries} />}
 			{state.kind === "trace" && (
 				<TraceView key={state.trace.meta.test?.id} trace={state.trace} />
 			)}

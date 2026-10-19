@@ -1,9 +1,9 @@
-import { mkdtempSync } from "node:fs";
+import { mkdirSync, mkdtempSync, renameSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { TraceDirectory } from "./directory.js";
-import { openTrace, serveTrace } from "./server.js";
+import { openTrace, openTraces, serveTrace } from "./server.js";
 import { zipDirectory } from "./zip.js";
 
 function makeTrace(): string {
@@ -95,5 +95,44 @@ describe("serveTrace", () => {
 
 	it("refuses a path without a trace", () => {
 		expect(() => openTrace(tmpdir())).toThrow(/has no trace\.json/);
+	});
+});
+
+describe("openTraces", () => {
+	it("finds the traces under a directory, also the exported ones, once", () => {
+		const results = mkdtempSync(join(tmpdir(), "xwright-results-"));
+		// Exported, with its directory still there.
+		const kept = makeTrace();
+		renameSync(dirname(kept), join(results, "a"));
+		zipDirectory(
+			join(results, "a", "xwright-trace"),
+			join(results, "a", "xwright-trace.zip"),
+		);
+		// Exported only, as downloaded from CI.
+		const exported = makeTrace();
+		mkdirSync(join(results, "b"));
+		zipDirectory(exported, join(results, "b", "xwright-trace.zip"));
+
+		const traces = openTraces(results);
+		expect(traces.map((trace) => trace.label)).toEqual([
+			"a/xwright-trace",
+			"b/xwright-trace.zip",
+		]);
+		for (const trace of traces) {
+			expect(trace.files.read("web.ndjson")?.toString()).toContain("call@1");
+		}
+	});
+
+	it("finds the traces in a ZIP file, also in the ZIP files in it", () => {
+		const artifact = mkdtempSync(join(tmpdir(), "xwright-artifact-"));
+		mkdirSync(join(artifact, "content", "a"), { recursive: true });
+		zipDirectory(
+			makeTrace(),
+			join(artifact, "content", "a", "xwright-trace.zip"),
+		);
+		zipDirectory(join(artifact, "content"), join(artifact, "traces.zip"));
+		expect(
+			openTraces(join(artifact, "traces.zip")).map((trace) => trace.label),
+		).toEqual(["traces.zip/a/xwright-trace.zip"]);
 	});
 });

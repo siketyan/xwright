@@ -7,8 +7,16 @@ import {
 } from "node:http";
 import { createRequire } from "node:module";
 import type { AddressInfo } from "node:net";
-import { dirname, extname, join, normalize, sep } from "node:path";
-import { readZip } from "./zip.js";
+import {
+	basename,
+	dirname,
+	extname,
+	join,
+	normalize,
+	relative,
+	sep,
+} from "node:path";
+import { findTraces, listFiles, readZip } from "./zip.js";
 
 const CONTENT_TYPES: Record<string, string> = {
 	".css": "text/css; charset=utf-8",
@@ -45,6 +53,56 @@ export function openTrace(path: string): TraceFiles {
 		throw new Error(`${path} has no trace.json`);
 	}
 	return { read: (file) => entries.get(file) };
+}
+
+/** A trace found at a path, with the path to show. */
+export interface FoundTrace {
+	label: string;
+	files: TraceFiles;
+}
+
+/**
+ * Finds the traces at the path: the trace of a directory with `trace.json`, the traces under a directory such as the
+ * output directory of the tests, or the traces in a ZIP file, also in the ZIP files in it as in an artifact of CI.
+ */
+export function openTraces(path: string): FoundTrace[] {
+	if (!existsSync(path)) {
+		throw new Error(`${path} does not exist`);
+	}
+	if (!statSync(path).isDirectory()) {
+		return zipTraces(basename(path), readZip(path));
+	}
+	const directories = findTraces([path]);
+	const found = directories.map((dir) => ({
+		label: relative(path, dir).split(sep).join("/") || basename(dir),
+		files: { read: (file: string) => readInside(dir, file) },
+	}));
+	// The ZIP files of `xwright export-trace`, unless the directory of the trace is there too.
+	for (const file of listFiles(path)) {
+		if (file.endsWith(".zip") && !directories.includes(file.slice(0, -4))) {
+			found.push(
+				...zipTraces(relative(path, file).split(sep).join("/"), readZip(file)),
+			);
+		}
+	}
+	return found.sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** The traces in the entries of a ZIP file, under the label of the file. */
+function zipTraces(label: string, entries: Map<string, Buffer>): FoundTrace[] {
+	const found: FoundTrace[] = [];
+	for (const [name, data] of entries) {
+		if (name === "trace.json" || name.endsWith("/trace.json")) {
+			const prefix = name.slice(0, -"trace.json".length);
+			found.push({
+				label: prefix === "" ? label : `${label}/${prefix.slice(0, -1)}`,
+				files: { read: (file) => entries.get(prefix + file) },
+			});
+		} else if (name.endsWith(".zip")) {
+			found.push(...zipTraces(`${label}/${name}`, readZip(data)));
+		}
+	}
+	return found;
 }
 
 /** Reads a file under the directory, refusing paths that go out of it. */
@@ -120,6 +178,56 @@ export async function serveTrace(
 		},
 		options,
 	);
+}
+
+/**
+ * Serves the UI with the traces: their list at `/api/traces`, as `{ id, label, meta }` with the `trace.json` of each,
+ * and the files of each under `/trace/<id>/`. The UI lists the tests of the traces to show them one at a time.
+ */
+export async function serveTraces(
+	traces: FoundTrace[],
+	options: { host?: string; port?: number } = {},
+): Promise<{ url: string; server: Server }> {
+	const byId = (id: string) =>
+		/^\d+$/.test(id) ? traces[Number(id)] : undefined;
+	return await serveUi(
+		{
+			trace: (path) => {
+				const [id = "", ...rest] = path.split("/");
+				return byId(id)?.files.read(rest.join("/"));
+			},
+			// Read each time, since a trace may still be written.
+			source: (file) =>
+				traces.some((trace) => sourceFiles(trace.files).has(file)),
+			handle: (_request, response, url) => {
+				if (url.pathname !== "/api/traces") {
+					return false;
+				}
+				const list = traces.map((trace, id) => ({
+					id: String(id),
+					label: trace.label,
+					meta: readMeta(trace.files),
+				}));
+				response
+					.writeHead(200, {
+						"content-type": "application/json; charset=utf-8",
+						"cache-control": "no-store",
+					})
+					.end(JSON.stringify(list));
+				return true;
+			},
+		},
+		options,
+	);
+}
+
+/** The `trace.json` of the trace, or `undefined` when it cannot be read, such as while it is rewritten. */
+function readMeta(trace: TraceFiles): unknown {
+	try {
+		return JSON.parse(trace.read("trace.json")?.toString("utf8") ?? "");
+	} catch {
+		return undefined;
+	}
 }
 
 /** Serves the UI and the content, on the loopback interface by default. Returns the URL. */

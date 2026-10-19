@@ -4,13 +4,14 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { ConfigCLIOverrides } from "playwright/lib/common";
 import type { RunOptions } from "playwright/lib/runner";
+import { resolveReporterName } from "./config.js";
 
 export const USAGE = `Usage: xwright <command> [options]
 
 Commands:
   test [test-filter...]   Run the tests
   export-trace [path...]  Write the traces under the paths, or test-results, into ZIP files for CI
-  show-trace [path]       Show a trace, a directory or a ZIP file of it, in the browser
+  show-trace [path]       Show the traces at the path, or in test-results, in the browser
 
 Run "xwright <command> --help" for the options of a command.`;
 
@@ -25,8 +26,10 @@ Options:
 
 export const SHOW_USAGE = `Usage: xwright show-trace [options] [path]
 
-Serves the UI with the trace at the path, a directory with trace.json or a ZIP file of one, and prints its URL.
-Without a path, the UI opens a trace dropped on it.
+Serves the UI with the traces at the path, and prints its URL. A path is a directory of a trace or a directory to
+search, such as the output directory of the tests, or a ZIP file of traces, such as an artifact of CI. The UI lists
+the tests of the traces, when there are more than one. Defaults to test-results; without traces there, the UI opens
+a trace dropped on it.
 
 Options:
   --host <host>  The host to listen on. Defaults to 127.0.0.1
@@ -59,7 +62,7 @@ export function parseShowArgs(
 	}
 	const [path, ...rest] = positionals;
 	if (rest.length > 0) {
-		throw new Error("show-trace takes the path of one trace");
+		throw new Error("show-trace takes one path");
 	}
 	return {
 		path: path === undefined ? undefined : resolve(cwd, path),
@@ -131,7 +134,7 @@ Options:
   --project <name...>         Only run tests from the specified projects
   --quiet                     Suppress stdio
   --repeat-each <N>           Run each test N times
-  --reporter <reporter>       Reporter to use, comma-separated
+  --reporter <reporter>       Reporter to use, comma-separated, such as tree of Xwright
   --retries <retries>         Maximum retry count for flaky tests
   --shard <shard>             Shard tests and execute only the selected shard, e.g. "1/3"
   --timeout <timeout>         Test timeout threshold in milliseconds
@@ -296,6 +299,9 @@ function parseShard(shard: string): { current: number; total: number } {
 function resolveReporter(name: string, cwd: string): string {
 	if (BUILT_IN_REPORTERS.includes(name)) {
 		return name;
+	}
+	if (resolveReporterName(name) !== name) {
+		return resolveReporterName(name);
 	}
 	const path = resolve(cwd, name);
 	if (existsSync(path)) {

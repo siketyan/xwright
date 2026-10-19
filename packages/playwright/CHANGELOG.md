@@ -1,5 +1,20 @@
 # @xwright/playwright
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`9583933`](https://github.com/siketyan/xwright/commit/9583933ae0df9363d5b295d97965e574f334057c)]:
+  - xwright@0.4.0
+
+## 0.1.2
+
+### Patch Changes
+
+- [#46](https://github.com/siketyan/xwright/pull/46) [`316c41f`](https://github.com/siketyan/xwright/commit/316c41f231a15590e839532add67d7505fecd5cf) Thanks [@siketyan](https://github.com/siketyan)! - Keep the network entry of a request finished at the end of a test in the trace.
+- Updated dependencies [[`769f907`](https://github.com/siketyan/xwright/commit/769f9075105484671ca937e2aaaf56935de67fc2), [`1161e5e`](https://github.com/siketyan/xwright/commit/1161e5ea3191523fd0c9440ea4b66e9fc3b973bb)]:
+  - xwright@0.3.0
+
 ## 0.1.1
 
 ### Patch Changes

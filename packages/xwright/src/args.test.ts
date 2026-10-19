@@ -145,6 +145,6 @@ describe("parseShowArgs", () => {
 
 	it("takes no path, or one", () => {
 		expect(parseShowArgs([], "/app")).toMatchObject({ path: undefined });
-		expect(() => parseShowArgs(["a", "b"], "/app")).toThrow(/one trace/);
+		expect(() => parseShowArgs(["a", "b"], "/app")).toThrow(/one path/);
 	});
 });

@@ -1,4 +1,4 @@
-import { defineAdapter, type Tracer } from "xwright";
+import { defineAdapter, type Tracer } from "@xwright/core";
 
 /** The options of {@link fakeWasher}. */
 export interface FakeWasherOptions {

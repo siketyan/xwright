@@ -8,5 +8,5 @@
 	"ignore": [],
 	"fixed": [],
 	"linked": [],
-	"updateInternalDependencies": "patch"
+	"updateInternalDependencies": "minor"
 }

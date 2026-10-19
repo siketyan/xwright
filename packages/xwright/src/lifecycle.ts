@@ -1,3 +1,4 @@
+import type { ActionMeta } from "@xwright/core";
 import type { TestInfo, WorkerInfo } from "playwright/test";
 import type {
 	Adapter,
@@ -11,7 +12,6 @@ import type { ResolvedDevice } from "./config.js";
 import { requestShared } from "./coordinator.js";
 import { deleteTarget, setTarget } from "./runtime.js";
 import { TraceSession } from "./trace/session.js";
-import type { ActionMeta } from "./trace.js";
 
 type AnyDefinition = AdapterDefinition<unknown, object, Json>;
 
@@ -111,11 +111,15 @@ export class WorkerSession {
 		}
 	}
 
-	/** Marks `afterAll` of the device due, to run after the user's `afterAll`. */
+	/**
+	 * Marks `afterAll` of the device due, to run after the user's `afterAll`. Ends the trace of the test, when a
+	 * `beforeAll` failed and no `afterEach` ran to end it.
+	 */
 	afterAll(name: string, testInfo: TestInfo): void {
 		if (this.file?.file === testInfo.file) {
 			this.file.ended.set(name, testInfo);
 		}
+		this.traces.endTest(testInfo);
 	}
 
 	/** Runs `afterAll` that is due, and forgets the file. Errors are reported when the worker ends. */

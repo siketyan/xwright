@@ -1,6 +1,6 @@
 {
 	"name": "@xwright/playwright",
-	"version": "0.1.1",
+	"version": "0.1.3",
 	"description": "Official Playwright adapter for Xwright",
 	"license": "Apache-2.0",
 	"repository": {
@@ -22,7 +22,10 @@
 		"dist"
 	],
 	"dependencies": {
-		"playwright": "1.63.0",
+		"@xwright/core": "workspace:^",
+		"playwright": "1.63.0"
+	},
+	"devDependencies": {
 		"xwright": "workspace:*"
 	}
 }

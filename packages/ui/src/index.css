@@ -136,12 +136,45 @@ header h1 {
 	transform: translateX(-50%);
 }
 
-.timeline-frame {
+.timeline-screens {
+	height: 52px;
+}
+
+.timeline-bar.timeline-screen-bar {
+	top: 1px;
+	height: 50px;
+	display: flex;
+	gap: 1px;
+	overflow: hidden;
+	padding: 0;
+	border: 1px solid var(--border);
+	background: var(--panel);
+	opacity: 1;
+}
+
+.timeline-screen-frame {
+	flex: none;
+	height: 48px;
+	object-fit: contain;
+}
+
+.timeline-probe {
 	position: absolute;
-	top: 2px;
-	height: 24px;
-	opacity: 0.5;
-	pointer-events: none;
+	height: 48px;
+	visibility: hidden;
+}
+
+.timeline-toggle {
+	font-size: 11px;
+	padding: 0 6px;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	color: var(--muted);
+}
+
+.timeline-toggle[aria-pressed="true"] {
+	color: var(--fg);
+	background: var(--selected);
 }
 
 .timeline-bar {
@@ -383,21 +416,16 @@ header h1 {
 	min-height: 100vh;
 }
 
-.drop-zone,
-.picker {
+.drop-zone {
 	max-width: 640px;
 	margin: 15vh auto 0;
 	padding: 24px;
 	text-align: center;
-}
-
-.drop-zone {
 	border: 2px dashed var(--border);
 	border-radius: 8px;
 }
 
-.drop-zone h1,
-.picker h1 {
+.drop-zone h1 {
 	font-size: 18px;
 }
 
@@ -411,19 +439,6 @@ header h1 {
 
 .file-button input {
 	display: none;
-}
-
-.picker ul {
-	list-style: none;
-	padding: 0;
-	text-align: left;
-}
-
-.picker button {
-	width: 100%;
-	text-align: left;
-	padding: 6px 8px;
-	border-bottom: 1px solid var(--border);
 }
 
 .drop-overlay {

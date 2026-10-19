@@ -22,8 +22,11 @@
 		"dist"
 	],
 	"dependencies": {
+		"@xwright/core": "workspace:^",
 		"expect-webdriverio": "8.0.0",
-		"webdriverio": "10.0.2",
+		"webdriverio": "10.0.2"
+	},
+	"devDependencies": {
 		"xwright": "workspace:*"
 	}
 }

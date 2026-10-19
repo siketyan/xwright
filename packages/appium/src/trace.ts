@@ -1,4 +1,4 @@
-import type { ActionSpan, Tracer } from "xwright";
+import type { ActionSpan, Tracer } from "@xwright/core";
 
 /** The events WebdriverIO emits for each command of the WebDriver protocol. */
 interface CommandEvent {

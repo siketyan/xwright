@@ -32,8 +32,12 @@ test("signs in on the phone after signing up on the web", async () => {
 
 - `xwright test` runs the tests, with the options of `playwright test`. `--ui` runs them in the browser instead,
   with the trace of each test as it runs.
-- `xwright show-trace [path]` shows a trace, its directory or a ZIP file of it, in the browser.
+- `xwright show-trace [path]` shows the traces at the path, or in `test-results`, in the browser, with the list of
+  their tests.
 - `xwright export-trace [path...]` writes the traces into ZIP files, to upload from CI.
+
+The `tree` reporter (`reporter: [["tree"]]`) prints each test with its steps as a tree when the test ends, in a group
+of the log on GitHub Actions.
 
 See the [README of the repository](https://github.com/siketyan/xwright#readme) for the configuration, the traces and the adapters.
 

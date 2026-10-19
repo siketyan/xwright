@@ -5,7 +5,12 @@ import { chromium } from "playwright";
 import { expect } from "playwright/test";
 import { afterAll, beforeAll, it } from "vitest";
 import { TraceDirectory } from "./trace/directory.js";
-import { openTrace, serveTrace } from "./trace/server.js";
+import {
+	openTrace,
+	openTraces,
+	serveTrace,
+	serveTraces,
+} from "./trace/server.js";
 import { zipDirectory } from "./trace/zip.js";
 
 const executable = "/opt/pw-browsers/chromium";
@@ -16,7 +21,7 @@ const PNG = Buffer.from(
 );
 
 /** Writes a trace of a step with a failing tap on a phone, which made a request. */
-function makeTrace(): string {
+function makeTrace(project = "android"): string {
 	const dir = join(mkdtempSync(join(tmpdir(), "xwright-ui-")), "xwright-trace");
 	const trace = new TraceDirectory(
 		dir,
@@ -28,7 +33,7 @@ function makeTrace(): string {
 			line: 1,
 			column: 1,
 			retry: 0,
-			project: "android",
+			project,
 		},
 		{ wallTime: 0, monotonicTime: 1000 },
 	);
@@ -92,8 +97,8 @@ function makeTrace(): string {
 }
 
 /** Writes a trace into a ZIP file, as `export-trace` does, and returns its path. */
-function makeZippedTrace(): string {
-	const dir = makeTrace();
+function makeZippedTrace(project?: string): string {
+	const dir = makeTrace(project);
 	zipDirectory(dir, `${dir}.zip`);
 	return `${dir}.zip`;
 }
@@ -124,6 +129,22 @@ it("shows the actions, the screen and the details of a trace", async () => {
 		const timeline = page.getByRole("region", { name: "Timeline" });
 		await expect(timeline.getByText("test", { exact: true })).toBeVisible();
 		await expect(timeline.getByText("phone", { exact: true })).toBeVisible();
+
+		// The action of the phone shows its screen on the timeline, until that is turned off, which is remembered.
+		const screens = timeline.locator('[data-track="phone"] .timeline-bar img');
+		const toggle = timeline.getByRole("button", { name: "Screenshots" });
+		await expect(screens.first()).toBeVisible();
+		await expect(toggle).toHaveAttribute("aria-pressed", "true");
+		await toggle.click();
+		await expect(screens).toHaveCount(0);
+		await expect(
+			timeline.locator('[data-track="phone"] .timeline-bar'),
+		).toBeVisible();
+		await page.reload();
+		await expect(toggle).toHaveAttribute("aria-pressed", "false");
+		await expect(screens).toHaveCount(0);
+		await toggle.click();
+		await expect(screens.first()).toBeVisible();
 
 		// The action of the phone is under the step, with the screenshot after it.
 		const actions = page.getByRole("navigation", { name: "Actions" });
@@ -179,11 +200,11 @@ it("opens a trace dropped on it, also from an artifact with traces in it", async
 
 		// An artifact of CI has the ZIP files of the traces in directories.
 		const artifact = mkdtempSync(join(tmpdir(), "xwright-artifact-"));
-		for (const name of ["a-android", "b-web"]) {
-			mkdirSync(join(artifact, "content", name), { recursive: true });
+		for (const project of ["android", "web"]) {
+			mkdirSync(join(artifact, "content", project), { recursive: true });
 			renameSync(
-				makeZippedTrace(),
-				join(artifact, "content", name, "xwright-trace.zip"),
+				makeZippedTrace(project),
+				join(artifact, "content", project, "xwright-trace.zip"),
 			);
 		}
 		zipDirectory(join(artifact, "content"), join(artifact, "traces.zip"));
@@ -191,16 +212,69 @@ it("opens a trace dropped on it, also from an artifact with traces in it", async
 		await page
 			.getByLabel("Open a file")
 			.setInputFiles(join(artifact, "traces.zip"));
-		await expect(
-			page.getByRole("heading", { name: "Traces in traces.zip" }),
-		).toBeVisible();
-		await page.getByRole("button", { name: "b-web/xwright-trace" }).click();
-		await expect(
-			page.getByRole("img", { name: "The screen of phone" }),
-		).toBeHidden();
+
+		// The tests of the traces are listed, and the first that failed is shown.
+		const tests = page.getByRole("complementary", { name: "Tests" });
+		await expect(tests.getByText("2 tests")).toBeVisible();
+		const android = tests.getByRole("button", { name: /signs in\s*android/ });
+		const web = tests.getByRole("button", { name: /signs in\s*web/ });
+		await expect(android).toHaveAttribute("aria-current", "true");
+		await expect(android.getByTitle("failed")).toBeVisible();
 		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
 			"auth.spec.ts › signs in",
 		);
+		await web.click();
+		await expect(web).toHaveAttribute("aria-current", "true");
+		await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+			"auth.spec.ts › signs in",
+		);
+	} finally {
+		await browser.close();
+		served.server.close();
+	}
+}, 60_000);
+
+it("lists the tests of the traces under a directory, as the UI of the runner does", async () => {
+	// The output directory of the tests, with the trace of a worker, which is of no test.
+	const results = mkdtempSync(join(tmpdir(), "xwright-results-"));
+	for (const project of ["android", "web"]) {
+		renameSync(
+			join(makeTrace(project), ".."),
+			join(results, `auth-signs-in-${project}`),
+		);
+	}
+	new TraceDirectory(join(results, "xwright-worker-0")).close();
+	const traces = openTraces(results);
+	expect(traces.map((trace) => trace.label)).toEqual([
+		"auth-signs-in-android/xwright-trace",
+		"auth-signs-in-web/xwright-trace",
+		"xwright-worker-0",
+	]);
+
+	const served = await serveTraces(traces);
+	const browser = await chromium.launch(
+		existsSync(executable) ? { executablePath: executable } : {},
+	);
+	try {
+		const page = await browser.newPage();
+		await page.goto(served.url);
+		const tests = page.getByRole("complementary", { name: "Tests" });
+		await expect(
+			tests.getByRole("heading", { name: "auth.spec.ts" }),
+		).toBeVisible();
+		await expect(tests.getByText("2 tests")).toBeVisible();
+
+		// A filter of the projects, as in the runner.
+		await tests
+			.getByRole("group", { name: "Projects" })
+			.getByRole("button", { name: "web" })
+			.click();
+		await expect(tests.getByText("1 of 2 tests")).toBeVisible();
+		await tests.getByRole("button", { name: /signs in\s*web/ }).click();
+		const actions = page.getByRole("navigation", { name: "Actions" });
+		await expect(
+			actions.getByRole("button", { name: "tap Sign in" }),
+		).toBeVisible();
 	} finally {
 		await browser.close();
 		served.server.close();

@@ -1,5 +1,23 @@
 # @xwright/mobilewright
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`9583933`](https://github.com/siketyan/xwright/commit/9583933ae0df9363d5b295d97965e574f334057c)]:
+  - xwright@0.4.0
+
+## 0.2.0
+
+### Minor Changes
+
+- [#47](https://github.com/siketyan/xwright/pull/47) [`e1c788d`](https://github.com/siketyan/xwright/commit/e1c788dc4617a92047f5aa02def323cccb84dc56) Thanks [@siketyan](https://github.com/siketyan)! - Leave the commands of the driver out of the trace, such as reading the view hierarchy while an assertion waits, and keep only the operations of Mobilewright.
+
+### Patch Changes
+
+- Updated dependencies [[`769f907`](https://github.com/siketyan/xwright/commit/769f9075105484671ca937e2aaaf56935de67fc2), [`1161e5e`](https://github.com/siketyan/xwright/commit/1161e5ea3191523fd0c9440ea4b66e9fc3b973bb)]:
+  - xwright@0.3.0
+
 ## 0.1.1
 
 ### Patch Changes
