@@ -15,6 +15,21 @@ import {
 import { expect } from "playwright/test";
 import { ApiCallRecorder, LiveTraceConverter } from "./trace.js";
 
+/** The types of Playwright that tests use most, so that they need no dependency on Playwright of their own. */
+export type {
+	APIRequestContext,
+	Browser,
+	BrowserContext,
+	ElementHandle,
+	Frame,
+	FrameLocator,
+	Locator,
+	Page,
+	Request,
+	Response,
+	Route,
+} from "playwright";
+
 /** The options of {@link playwright}. */
 export interface PlaywrightOptions extends BrowserContextOptions {
 	/** The browser to launch. Defaults to `chromium`. */

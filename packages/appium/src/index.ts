@@ -30,7 +30,18 @@ export interface AppiumOptions {
 	remoteOptions?: RemoteOptions;
 }
 
-type Browser = Awaited<ReturnType<typeof remote>>;
+/** The types of WebdriverIO that tests use most, so that they need no dependency on WebdriverIO of their own. */
+export type {
+	ChainablePromiseArray,
+	ChainablePromiseElement,
+	Selector,
+} from "webdriverio";
+
+/** A session of WebdriverIO, the `driver` of the handle. */
+export type Browser = WebdriverIO.Browser;
+
+/** An element found by a session of WebdriverIO, such as with `driver.$()`. */
+export type Element = WebdriverIO.Element;
 
 /** What `use()` returns for a device with {@link appium}. */
 export class AppiumHandle {
