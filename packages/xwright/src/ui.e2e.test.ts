@@ -173,12 +173,18 @@ it("shows the actions, the screen and the details of a trace", async () => {
 			.poll(async () => (await actionsPane.boundingBox())?.width)
 			.toBeLessThan(resized);
 
-		// The action of the phone is under the step, with the screenshot after it.
+		// The action of the phone is under the step, hidden until the step is expanded, with the screenshot after it.
 		const actions = page.getByRole("navigation", { name: "Actions" });
 		await expect(
 			actions.getByRole("button", { name: "sign in", exact: true }),
 		).toBeVisible();
-		await actions.getByRole("button", { name: "tap Sign in" }).click();
+		const tap = actions.getByRole("button", {
+			name: "tap Sign in",
+			exact: true,
+		});
+		await expect(tap).toBeHidden();
+		await actions.getByRole("button", { name: "Expand sign in" }).click();
+		await tap.click();
 		await expect(
 			page.getByRole("img", { name: "The screen of phone" }),
 		).toBeVisible();
@@ -300,8 +306,16 @@ it("lists the tests of the traces under a directory, as the UI of the runner doe
 		await tests.getByRole("button", { name: /signs in\s*web/ }).click();
 		const actions = page.getByRole("navigation", { name: "Actions" });
 		await expect(
-			actions.getByRole("button", { name: "tap Sign in" }),
+			actions.getByRole("button", { name: "sign in", exact: true }),
 		).toBeVisible();
+		// An action selected on the timeline is shown in the list, under its step expanded.
+		await page
+			.getByRole("region", { name: "Timeline" })
+			.getByRole("button", { name: /^tap Sign in/ })
+			.click();
+		await expect(
+			actions.getByRole("button", { name: "tap Sign in", exact: true }),
+		).toHaveAttribute("aria-current", "true");
 	} finally {
 		await browser.close();
 		served.server.close();
@@ -423,7 +437,7 @@ it("follows a trace while it is written", async () => {
 		await page.goto(served.url);
 		const actions = page.getByRole("navigation", { name: "Actions" });
 		await expect(
-			actions.getByRole("button", { name: "first step" }),
+			actions.getByRole("button", { name: "first step", exact: true }),
 		).toBeVisible();
 		await expect(page.getByText("running…")).toBeVisible();
 
@@ -440,11 +454,30 @@ it("follows a trace while it is written", async () => {
 			startTime: 1010,
 			title: "click",
 		});
-		await actions.getByRole("button", { name: "first step" }).click();
-		await expect(actions.getByRole("button", { name: "click" })).toBeVisible();
+		await actions
+			.getByRole("button", { name: "first step", exact: true })
+			.click();
+		// The action of a step is hidden until the step is expanded.
+		await actions.getByRole("button", { name: "Expand first step" }).click();
+		await expect(
+			actions.getByRole("button", { name: "click", exact: true }),
+		).toBeVisible();
 		await expect(
 			page.getByRole("region", { name: "Timeline" }).getByText("web"),
 		).toBeVisible();
+
+		// The list follows the actions as they come, while the test runs.
+		for (let i = 0; i < 40; i++) {
+			web?.append({
+				type: "before",
+				callId: `call@${10 + i}`,
+				startTime: 1020 + i,
+				title: `action ${i}`,
+			});
+		}
+		await expect(
+			actions.getByRole("button", { name: "action 39", exact: true }),
+		).toBeInViewport();
 
 		test?.append({ type: "after", callId: "call@1", endTime: 1100 });
 		trace.setResult({ status: "passed", duration: 0 });
@@ -453,7 +486,7 @@ it("follows a trace while it is written", async () => {
 		await expect(page.getByText("running…")).toBeHidden();
 		// The selection stays.
 		await expect(
-			actions.getByRole("button", { name: "first step" }),
+			actions.getByRole("button", { name: "first step", exact: true }),
 		).toHaveAttribute("aria-current", "true");
 	} finally {
 		trace.close();

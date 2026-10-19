@@ -57,7 +57,9 @@ it("runs the tests and shows the trace of the one running", async () => {
 		await expect(slow.getByTitle("running")).toBeVisible();
 		await expect(fails.getByTitle("failed")).toBeVisible();
 		await expect(slow.getByTitle("passed")).toBeVisible({ timeout: 15_000 });
-		await expect(actions.getByRole("button", { name: "then" })).toBeVisible();
+		await expect(
+			actions.getByRole("button", { name: "then", exact: true }),
+		).toBeVisible();
 	} finally {
 		await browser.close();
 		server.close();
