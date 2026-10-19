@@ -5,6 +5,7 @@ import {
 	existsSync,
 	mkdirSync,
 	openSync,
+	readFileSync,
 	renameSync,
 	rmSync,
 	writeFileSync,
@@ -13,6 +14,7 @@ import {
 import { join } from "node:path";
 import type { TraceMode } from "../config.js";
 import { hostTime } from "./clock.js";
+import { redactContent, redactValue } from "./redact.js";
 
 /** The version of the format of the trace. */
 export const TRACE_VERSION = 1;
@@ -92,12 +94,15 @@ export class Track {
 	/** Appends an event, unless the track was closed. */
 	append(event: Record<string, unknown>): void {
 		if (this.fd !== undefined) {
-			writeSync(this.fd, `${JSON.stringify(event)}\n`);
+			writeSync(this.fd, `${JSON.stringify(redactValue(event))}\n`);
 		}
 	}
 
 	/** Writes a resource file named by the hash of its content, and returns its path relative to the trace. */
 	resource(data: Uint8Array | string, contentType: string): string {
+		data = redactContent(
+			typeof data === "string" ? new TextEncoder().encode(data) : data,
+		);
 		const hash = createHash("sha1").update(data).digest("hex");
 		const extension = EXTENSIONS[contentType] ?? "bin";
 		const path = `${this.name}/resources/${hash}.${extension}`;
@@ -116,7 +121,13 @@ export class Track {
 			mkdirSync(join(this.directory, this.name, "resources"), {
 				recursive: true,
 			});
-			copyFileSync(source, target);
+			const data = readFileSync(source);
+			const redacted = redactContent(data);
+			if (redacted === data) {
+				copyFileSync(source, target);
+			} else {
+				writeFileSync(target, redacted);
+			}
 		}
 		return path;
 	}
@@ -248,7 +259,10 @@ export class TraceDirectory {
 	/** Rewrites `trace.json` through a temporary file, so that a reader never sees it half written. */
 	private writeMeta(): void {
 		const file = join(this.path, "trace.json");
-		writeFileSync(`${file}.tmp`, `${JSON.stringify(this.meta, null, 2)}\n`);
+		writeFileSync(
+			`${file}.tmp`,
+			`${JSON.stringify(redactValue(this.meta), null, 2)}\n`,
+		);
 		renameSync(`${file}.tmp`, file);
 	}
 }

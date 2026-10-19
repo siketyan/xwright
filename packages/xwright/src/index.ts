@@ -17,6 +17,7 @@ export {
 } from "./config.js";
 export { type StepOptions, step } from "./step.js";
 export { test, type XwrightFixtures } from "./test.js";
+export { type RedactOptions, secret } from "./trace/redact.js";
 export type {
 	ActionMeta,
 	ActionSpan,

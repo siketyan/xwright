@@ -1,5 +1,5 @@
 import type { PlaywrightHandle } from "@xwright/playwright";
-import { step, test, use } from "xwright";
+import { secret, step, test, use } from "xwright";
 
 declare module "xwright" {
 	interface Devices {
@@ -21,4 +21,25 @@ test("clicks a button", async () => {
 	});
 	await web.page.getByRole("button").click();
 	await web.expect(web.page.getByRole("button")).toHaveText("Clicked");
+});
+
+test("keeps the secrets out of the trace", async () => {
+	await web.page.route("https://xwright.test/login", (route) =>
+		route.fulfill({
+			contentType: "text/html",
+			body: `<input type="password" id="password">
+<button onclick="fetch('/api', { method: 'POST', headers: { Authorization: 'Bearer ' + password.value, 'X-Api-Key': 'api-key-1234' }, body: password.value }).then((response) => response.text()).then((token) => { document.title = token; console.log(token); })">Sign in</button>`,
+		}),
+	);
+	// A token known only during the test.
+	const token = secret(`token-${Date.now()}`);
+	await web.page.route("https://xwright.test/api", (route) =>
+		route.fulfill({ contentType: "text/plain", body: token }),
+	);
+	await web.page.goto("https://xwright.test/login");
+	await web.page.fill("#password", "correct horse battery staple");
+	console.log("signing in with correct horse battery staple");
+	await web.page.getByRole("button").click();
+	await web.expect(web.page).toHaveTitle(token);
+	console.log(`TOKEN_LENGTH=${token.length}`);
 });
