@@ -46,8 +46,6 @@ export class PlaywrightHandle {
 	/** @internal */
 	_converter: LiveTraceConverter | undefined;
 	/** @internal */
-	_tracing = false;
-	/** @internal */
 	_chunk = 0;
 
 	/** The browser, shared in the worker. */
@@ -89,7 +87,7 @@ async function open(
 }
 
 /**
- * Starts a chunk of Playwright's live trace of the context for the test, when the test is recorded, and converts it
+ * Starts Playwright's live trace of the context for the test, when the test is recorded, and converts it
  * into the track of the device as it is written.
  */
 async function startTrace(
@@ -102,28 +100,26 @@ async function startTrace(
 	}
 	handle._chunk += 1;
 	const name = `trace-${process.pid}-${handle._chunk}`;
-	if (handle._tracing) {
-		await context.tracing.startChunk({ name });
-	} else {
-		await context.tracing.start({
-			name,
-			live: true,
-			screenshots: true,
-			snapshots: true,
-		});
-		handle._tracing = true;
-	}
+	await context.tracing.start({
+		name,
+		live: true,
+		screenshots: true,
+		snapshots: true,
+	});
 	handle._converter = new LiveTraceConverter(trace, handle._tracesDir, name);
 }
 
-/** Stops the chunk of the trace, and converts the rest of it. */
+/**
+ * Stops the trace, and converts the rest of it. Stopping the tracing, not only the chunk, waits for Playwright to write
+ * the network entries it flushes, such as of a request finished just before.
+ */
 async function stopTrace(handle: PlaywrightHandle): Promise<void> {
 	const converter = handle._converter;
 	handle._converter = undefined;
 	if (converter === undefined) {
 		return;
 	}
-	await handle._context?.tracing.stopChunk();
+	await handle._context?.tracing.stop();
 	converter.stop();
 }
 
@@ -132,7 +128,6 @@ async function close(handle: PlaywrightHandle): Promise<void> {
 	const context = handle._context;
 	handle._context = undefined;
 	handle._page = undefined;
-	handle._tracing = false;
 	await context?.close();
 }
 
