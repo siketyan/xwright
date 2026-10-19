@@ -22,7 +22,7 @@ it("records the operations of Mobilewright with the commands of the driver", asy
 	await rm(results, { recursive: true, force: true });
 	const { report } = await runFixture(fixture);
 	expect(report.errors).toEqual([]);
-	expect(report.stats).toMatchObject({ expected: 1, unexpected: 1 });
+	expect(report.stats).toMatchObject({ expected: 2, unexpected: 1 });
 
 	const events = track(results, "trace.e2e.ts-taps-a-text-android");
 	const tap = events.find((event) => event.title === "locator.tap()");
@@ -75,3 +75,28 @@ it("records the operations of Mobilewright with the commands of the driver", asy
 		}),
 	);
 }, 60_000);
+
+// Reads the steps of the run of the fixture by the test above.
+it("reports the operations of Mobilewright as Playwright reports the calls of its API", () => {
+	const steps = JSON.parse(
+		readFileSync(fileURLToPath(new URL("steps.json", fixture)), "utf8"),
+	) as Record<string, { title: string; category: string; steps: unknown[] }[]>;
+	const find = (
+		list: { title: string; category: string; steps: unknown[] }[],
+		title: string,
+	) => list.find((step) => step.title === title);
+
+	// Not steps of the test, which the list reporter prints, but calls of the API and assertions.
+	expect(find(steps["taps a text"] ?? [], "locator.tap()")).toMatchObject({
+		category: "pw:api",
+	});
+	const greet = find(steps["taps in a step"] ?? [], "greet");
+	expect(greet).toMatchObject({ category: "test.step" });
+	expect(greet?.steps).toEqual([
+		expect.objectContaining({ title: "locator.tap()", category: "pw:api" }),
+		expect.objectContaining({
+			title: "expect.toBeVisible()",
+			category: "expect",
+		}),
+	]);
+});

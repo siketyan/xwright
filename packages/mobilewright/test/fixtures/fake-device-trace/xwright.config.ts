@@ -6,7 +6,7 @@ export default defineConfig({
 	testMatch: "*.e2e.ts",
 	outputDir: "test-results",
 	workers: 1,
-	reporter: [["json", { outputFile: "results.json" }]],
+	reporter: [["json", { outputFile: "results.json" }], ["./steps-reporter.ts"]],
 	projects: [
 		{
 			name: "android",
