@@ -29,7 +29,7 @@ it("writes the trace of each test by the trace modes of the devices", async () =
 	await rm(results, { recursive: true, force: true });
 	const { report } = await runFixture("trace");
 	expect(report.errors).toEqual([]);
-	expect(report.stats).toMatchObject({ expected: 2, unexpected: 2 });
+	expect(report.stats).toMatchObject({ expected: 2, unexpected: 4 });
 
 	// "b" records only on failure, so the passing test keeps only "a".
 	const passes = "trace.e2e.ts-passes-traced";
@@ -95,6 +95,22 @@ it("writes the trace of each test by the trace modes of the devices", async () =
 	expect(events(fails, "test")).toEqual([
 		expect.objectContaining({ type: "error", message: "Error: expected" }),
 	]);
+
+	// A test that failed in `beforeAll`, with no `afterEach` run, keeps its trace and its error too.
+	const failsInBeforeAll = "uses-before-all.e2e.ts-fails-in-beforeAll-traced";
+	expect(meta(failsInBeforeAll)).toMatchObject({
+		devices: [{ name: "a" }],
+		result: { status: "failed" },
+	});
+	expect(events(failsInBeforeAll, "test")).toEqual([
+		expect.objectContaining({
+			type: "error",
+			message: "Error: beforeAll failed",
+		}),
+	]);
+	expect(events(failsInBeforeAll, "a")).toContainEqual(
+		expect.objectContaining({ type: "before", title: "tap sign in" }),
+	);
 
 	// The worker has the creation and the disposal of the devices.
 	const worker = join(results, "xwright-worker-0");
