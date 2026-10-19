@@ -2,4 +2,4 @@
 "@xwright/ui": minor
 ---
 
-Show the screens of each device over time on the timeline, from its screencast or its screenshots, as Playwright does. The button "Screenshots" turns them off, and the choice is remembered in the browser.
+Show on the timeline the screens of each device while its actions ran, from its screencast or its screenshots, in place of the bars of the actions. The button "Screenshots" turns them back into bars, and the choice is remembered in the browser.

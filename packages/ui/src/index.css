@@ -136,19 +136,32 @@ header h1 {
 	transform: translateX(-50%);
 }
 
-.timeline-filmstrip {
+.timeline-screens {
 	height: 52px;
 }
 
-.timeline-thumb {
-	position: absolute;
-	top: 2px;
+.timeline-bar.timeline-screen-bar {
+	top: 1px;
+	height: 50px;
+	display: flex;
+	gap: 1px;
+	overflow: hidden;
+	padding: 0;
+	border: 1px solid var(--border);
+	background: var(--panel);
+	opacity: 1;
+}
+
+.timeline-bar.timeline-screen-bar img {
+	flex: none;
 	height: 48px;
 	object-fit: contain;
-	border: 1px solid var(--border);
-	border-radius: 2px;
-	background: var(--panel);
-	pointer-events: none;
+}
+
+.timeline-probe {
+	position: absolute;
+	height: 48px;
+	visibility: hidden;
 }
 
 .timeline-toggle {

@@ -171,8 +171,9 @@ export function filmstripFrames(
 }
 
 /**
- * The frames to show at `count` times spread evenly from `start` to `end`: at each, the last frame up to the time, or
- * the first frame before any. The frames are in the order of their times.
+ * The frames to show in `count` slots of the time from `start` to `end`: in each, the last frame up to the end of the
+ * slot, so that a screenshot taken at the end of an action is in its last slot, or the first frame before any. The
+ * frames are in the order of their times.
  */
 export function framesAt(
 	frames: ScreencastFrame[],
@@ -187,7 +188,7 @@ export function framesAt(
 	const shown: ScreencastFrame[] = [];
 	let index = 0;
 	for (let slot = 0; slot < count; slot++) {
-		const time = start + ((end - start) * (slot + 0.5)) / count;
+		const time = start + ((end - start) * (slot + 1)) / count;
 		while (
 			index + 1 < frames.length &&
 			(frames[index + 1]?.time ?? 0) <= time

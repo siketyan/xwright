@@ -21,7 +21,7 @@ const SCREENSHOTS_KEY = "xwright.timeline.screenshots";
 const LABEL_WIDTH = 140;
 const LANE_MARGIN = 12;
 
-/** The height of a frame of a filmstrip, in pixels. */
+/** The height of a frame of a screen on the timeline, in pixels. */
 const FRAME_HEIGHT = 48;
 
 function readShowScreenshots(): boolean {
@@ -33,8 +33,8 @@ function readShowScreenshots(): boolean {
 }
 
 /**
- * The actions on the tracks of the test and of each device, one row per track, on one time axis. Under the row of a
- * device with a screencast or screenshots, a filmstrip shows its screen over time, unless it is turned off.
+ * The actions on the tracks of the test and of each device, one row per track, on one time axis. The actions of a
+ * device with a screencast or screenshots show the screens of the device while they ran, unless that is turned off.
  */
 export function Timeline({ trace, selected, onSelect }: Props) {
 	const [showScreenshots, setShowScreenshots] = useState(readShowScreenshots);
@@ -127,51 +127,58 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 			</div>
 			{trace.tracks.map((track) => {
 				const frames = filmstrips.get(track.name) ?? [];
+				const actions = rows.get(track.name) ?? [];
+				const bar = (action: Action) => ({
+					className: `timeline-bar${action === selected ? " selected" : ""}${action.error ? " failed" : ""}`,
+					title: `${action.title} (${formatDuration((action.endTime ?? trace.endTime) - action.startTime)})`,
+					style: {
+						left: left(action.startTime),
+						width: width(action.startTime, action.endTime),
+					},
+					onClick: (event: MouseEvent) => {
+						event.stopPropagation();
+						onSelect(action);
+					},
+				});
 				return (
-					<div key={track.name} className="timeline-track">
-						<div className="timeline-row" data-track={track.name}>
-							<div
-								className="timeline-label"
-								title={track.adapter ?? "the test"}
-							>
-								<span
-									className="dot"
-									style={{ background: trackColor(trace, track.name) }}
-								/>
-								{track.name}
-							</div>
-							<div className="timeline-lane">
-								{(rows.get(track.name) ?? []).map((action) => (
-									<button
-										key={action.callId}
-										type="button"
-										className={`timeline-bar${action === selected ? " selected" : ""}${action.error ? " failed" : ""}`}
-										title={`${action.title} (${formatDuration((action.endTime ?? trace.endTime) - action.startTime)})`}
-										style={{
-											left: left(action.startTime),
-											width: width(action.startTime, action.endTime),
-											background: trackColor(trace, track.name),
-										}}
-										onClick={(event: MouseEvent) => {
-											event.stopPropagation();
-											onSelect(action);
-										}}
-									/>
-								))}
-							</div>
+					<div
+						key={track.name}
+						className={`timeline-row${showScreenshots && frames.length > 0 ? " timeline-screens" : ""}`}
+						data-track={track.name}
+					>
+						<div className="timeline-label" title={track.adapter ?? "the test"}>
+							<span
+								className="dot"
+								style={{ background: trackColor(trace, track.name) }}
+							/>
+							{track.name}
 						</div>
-						{showScreenshots && frames.length > 0 && (
-							<div
-								className="timeline-row timeline-filmstrip"
-								data-filmstrip={track.name}
-								title={`The screens of ${track.name}`}
-							>
-								<div className="timeline-label" />
-								<div className="timeline-lane">
-									<Filmstrip trace={trace} frames={frames} width={laneWidth} />
-								</div>
-							</div>
-						)}
+						<div className="timeline-lane">
+							{showScreenshots && frames.length > 0 ? (
+								<ScreenBars
+									trace={trace}
+									frames={frames}
+									actions={actions}
+									laneWidth={laneWidth}
+									bar={bar}
+								/>
+							) : (
+								actions.map((action) => {
+									const { style, ...props } = bar(action);
+									return (
+										<button
+											key={action.callId}
+											type="button"
+											{...props}
+											style={{
+												...style,
+												background: trackColor(trace, track.name),
+											}}
+										/>
+									);
+								})
+							)}
+						</div>
 					</div>
 				);
 			})}
@@ -179,15 +186,27 @@ export function Timeline({ trace, selected, onSelect }: Props) {
 	);
 }
 
-/** The frames of a device over the time of the trace, as many as fit in the width, each at its share of the time. */
-function Filmstrip({
+/**
+ * The actions of a device as the screens it showed while each ran, as many frames as fit in the width of the action,
+ * each at the end of its share of the time.
+ */
+function ScreenBars({
 	trace,
 	frames,
-	width,
+	actions,
+	laneWidth,
+	bar,
 }: {
 	trace: Trace;
 	frames: ScreencastFrame[];
-	width: number;
+	actions: Action[];
+	laneWidth: number;
+	bar(action: Action): {
+		className: string;
+		title: string;
+		style: { left: string; width: string };
+		onClick(event: MouseEvent): void;
+	};
 }) {
 	const [first] = frames;
 	// The shape of the screen, from the size of a frame of a screencast, or from the image of a screenshot.
@@ -200,7 +219,7 @@ function Filmstrip({
 	if (aspect === undefined) {
 		return (
 			<img
-				className="timeline-thumb"
+				className="timeline-probe"
 				src={trace.url(first.file)}
 				alt=""
 				onLoad={(event) => {
@@ -210,19 +229,31 @@ function Filmstrip({
 			/>
 		);
 	}
+	const span = Math.max(trace.endTime - trace.startTime, 1);
 	const frameWidth = FRAME_HEIGHT * aspect;
-	// A gap of 2 pixels between the frames.
-	const count = Math.max(1, Math.floor(width / (frameWidth + 2)));
-	return framesAt(frames, trace.startTime, trace.endTime, count).map(
-		(frame, slot) => (
-			<img
-				// biome-ignore lint/suspicious/noArrayIndexKey: a frame can fill more than one slot, which are in order.
-				key={slot}
-				className="timeline-thumb"
-				src={trace.url(frame.file)}
-				alt=""
-				style={{ left: slot * (frameWidth + 2), width: frameWidth }}
-			/>
-		),
-	);
+	return actions.map((action) => {
+		const end = action.endTime ?? trace.endTime;
+		const barWidth = (laneWidth * (end - action.startTime)) / span;
+		// A gap of 1 pixel between the frames; an action narrower than a frame shows a part of one.
+		const count = Math.max(1, Math.floor(barWidth / (frameWidth + 1)));
+		const { className, ...props } = bar(action);
+		return (
+			<button
+				key={action.callId}
+				type="button"
+				className={`${className} timeline-screen-bar`}
+				{...props}
+			>
+				{framesAt(frames, action.startTime, end, count).map((frame, slot) => (
+					<img
+						// biome-ignore lint/suspicious/noArrayIndexKey: a frame can fill more than one slot, which are in order.
+						key={slot}
+						src={trace.url(frame.file)}
+						alt=""
+						style={{ width: frameWidth }}
+					/>
+				))}
+			</button>
+		);
+	});
 }

@@ -151,8 +151,8 @@ describe("framesAt", () => {
 		{ track: "phone", time: 90, file: "c" },
 	];
 
-	it("shows the last frame up to each time, or the first before any", () => {
-		// The times are 10, 30, 50, 70 and 90.
+	it("shows the last frame up to the end of each slot, or the first before any", () => {
+		// The slots end at 20, 40, 60, 80 and 100.
 		expect(framesAt(frames, 0, 100, 5).map((frame) => frame.file)).toEqual([
 			"a",
 			"a",
@@ -163,6 +163,11 @@ describe("framesAt", () => {
 		expect(framesAt(frames, 0, 10, 2).map((frame) => frame.file)).toEqual([
 			"a",
 			"a",
+		]);
+		// The screenshot taken at the end of an action is in its last slot.
+		expect(framesAt(frames, 50, 90, 2).map((frame) => frame.file)).toEqual([
+			"b",
+			"c",
 		]);
 	});
 
