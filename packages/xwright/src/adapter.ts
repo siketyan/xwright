@@ -11,6 +11,40 @@ export type Json =
 	| Json[]
 	| { [key: string]: Json };
 
+/** The worker that the options of an adapter are made for, by {@link AdapterOptions} given as a function. */
+export interface WorkerSlot {
+	/**
+	 * The index of the worker among the ones running at once, from 0 to the number of workers - 1. It stays the same
+	 * when the worker is recreated after a failure, so it is the one to choose an account or a port by.
+	 */
+	parallelIndex: number;
+	/** The unique index of the worker in the run, which a worker recreated after a failure gets anew. */
+	workerIndex: number;
+}
+
+/**
+ * The options of an adapter, or a function that makes them for each worker, such as to give every worker its own
+ * account or port: `playwright(({ parallelIndex }) => ({ ... }))`.
+ *
+ * `createOnce` and `disposeOnce` run in the runner, outside the workers, and get the options of the indices 0.
+ */
+export type AdapterOptions<Options> =
+	| Options
+	| ((worker: WorkerSlot) => Options);
+
+/** The slot `createOnce` and `disposeOnce` make the options for, in the runner. */
+export const RUNNER_SLOT: WorkerSlot = { parallelIndex: 0, workerIndex: 0 };
+
+/** Makes the options of the adapter for the worker. */
+export function resolveOptions<Options>(
+	options: AdapterOptions<Options>,
+	worker: WorkerSlot,
+): Options {
+	return typeof options === "function"
+		? (options as (worker: WorkerSlot) => Options)(worker)
+		: options;
+}
+
 /** The context of {@link AdapterDefinition.createOnce} and {@link AdapterDefinition.disposeOnce}. */
 export interface OnceContext<Options> {
 	/** The options the adapter was configured with. */
@@ -108,7 +142,7 @@ export interface Adapter<
 	Shared extends Json = Json,
 > {
 	readonly definition: AdapterDefinition<Options, Handle, Shared>;
-	readonly options: Options;
+	readonly options: AdapterOptions<Options>;
 }
 
 /** The type of the handle `use()` returns for a device with the adapter. */
@@ -116,8 +150,9 @@ export type HandleOf<A> =
 	A extends Adapter<unknown, infer Handle> ? Handle : never;
 
 /**
- * Defines an adapter. The returned function takes the options of the adapter and makes an {@link Adapter} to put on
- * a device in the configuration. The options can be omitted when they accept `undefined`.
+ * Defines an adapter. The returned function takes the options of the adapter, or a function that makes them for
+ * each worker, and makes an {@link Adapter} to put on a device in the configuration. The options can be omitted when
+ * they accept `undefined`.
  */
 export function defineAdapter<
 	Options,
@@ -126,12 +161,17 @@ export function defineAdapter<
 >(
 	definition: AdapterDefinition<Options, Handle, Shared>,
 ): (
-	...args: undefined extends Options ? [options?: Options] : [options: Options]
+	...args: undefined extends Options
+		? [options?: AdapterOptions<Options>]
+		: [options: AdapterOptions<Options>]
 ) => Adapter<Options, Handle, Shared> {
 	// The stacks of actions point to the tests, not to the adapter.
 	const directory = callerDirectory();
 	if (directory !== undefined) {
 		addLibraryDirectory(directory);
 	}
-	return (...[options]) => ({ definition, options: options as Options });
+	return (...[options]) => ({
+		definition,
+		options: options as AdapterOptions<Options>,
+	});
 }

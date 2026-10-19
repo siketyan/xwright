@@ -1,12 +1,14 @@
 export {
 	type Adapter,
 	type AdapterDefinition,
+	type AdapterOptions,
 	defineAdapter,
 	type HandleOf,
 	type Json,
 	type OnceContext,
 	type TestContext,
 	type WorkerContext,
+	type WorkerSlot,
 } from "./adapter.js";
 export {
 	type Config,

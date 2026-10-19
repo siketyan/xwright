@@ -141,6 +141,24 @@ Events are appended as they happen, in the action model of Playwright's trace, w
 the host. The creation and the disposal of devices go to `xwright-worker-<index>` in the output directory of the
 project.
 
+### Options for each worker
+
+The options of an adapter can be a function that makes them for each worker, such as to give every worker running at
+once its own account or port. It gets `parallelIndex`, from 0 to the number of workers - 1, which a worker recreated
+after a failure keeps, and `workerIndex`, unique in the run.
+
+```ts
+web: {
+  adapter: playwright(({ parallelIndex }) => ({
+    baseURL: "http://localhost:3000",
+    httpCredentials: { username: `user${parallelIndex}`, password: process.env.PASSWORD! },
+  })),
+},
+```
+
+`createOnce` and `disposeOnce` of an adapter run in the runner, outside the workers, and get the options for the
+indices 0.
+
 ### Official adapters
 
 - `playwright(options)` launches a browser per worker. Every test gets a fresh browser context and page, or
