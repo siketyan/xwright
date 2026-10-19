@@ -2,3 +2,6 @@ packages:
   - packages/*
   - examples/*
   - examples/laundry/*
+allowBuilds:
+  edgedriver: false
+  geckodriver: false

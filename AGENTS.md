@@ -32,6 +32,7 @@ Android through Mobilewright, and takes any other device through adapters writte
   adapter SDK.
 - `packages/playwright` — `@xwright/playwright`: the official adapter for the web.
 - `packages/mobilewright` — `@xwright/mobilewright`: the official adapter for iOS and Android.
+- `packages/appium` — `@xwright/appium`: the official adapter for Appium, through WebdriverIO.
 - `packages/ui` — `@xwright/ui`: the UI that shows the traces, a React app built with Vite.
 - `examples/` — example projects. They need real devices, so `pnpm test` does not run them; the E2E workflow runs
   `examples/laundry` on the web, an Android emulator and an iOS simulator.
@@ -43,7 +44,7 @@ Android through Mobilewright, and takes any other device through adapters writte
 
 - Use English everywhere in the repository.
 - Use the latest version of every dependency, and follow the official guide when adding a new tool.
-- Playwright and Mobilewright are pinned, Playwright at the version Mobilewright pins.
+- Playwright, Mobilewright and WebdriverIO are pinned, Playwright at the version Mobilewright pins.
 - GitHub Actions: refer to actions by their exact version tag (e.g. `@v7.0.1`); their commits are locked in
   `.github/workflows/actions.lock`. Give each job the least permissions and check out with
   `persist-credentials: false`.

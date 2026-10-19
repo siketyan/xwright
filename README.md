@@ -30,6 +30,7 @@ fake washer runs it, and the dashboard on the web follows.
 | [`@xwright/core`](./packages/core) | The SDK to write adapters |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
+| [`@xwright/appium`](./packages/appium) | The official adapter for Appium, built on WebdriverIO |
 | [`@xwright/ui`](./packages/ui) | The UI that shows the traces |
 
 ## Installation
@@ -204,6 +205,11 @@ indices 0.
   per device, and relaunches `bundleId` before each test. It takes the options of Mobilewright, such as `platform`
   and `driver`. The handle is `{ device, screen, expect }`. When traced, each operation such as a tap is an action,
   with a screenshot after it (`screenshots`), and the view hierarchy is recorded when a test failed (`viewTree`).
+
+- `appium(options)` creates a session of an Appium server per worker through WebdriverIO, and launches `appId` again
+  before each test. It takes the `url` of the server, the `capabilities` of the session and `remoteOptions` of
+  WebdriverIO. The handle is `{ driver, expect }`. When traced, every command sent to the server is an action, with a
+  screenshot after the ones that change the screen, and the source of the page is recorded when a test failed.
 
 ### Adapters
 
