@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import type { ConfigCLIOverrides } from "playwright/lib/common";
 import type { RunOptions } from "playwright/lib/runner";
+import { resolveReporterName } from "./config.js";
 
 export const USAGE = `Usage: xwright <command> [options]
 
@@ -133,7 +134,7 @@ Options:
   --project <name...>         Only run tests from the specified projects
   --quiet                     Suppress stdio
   --repeat-each <N>           Run each test N times
-  --reporter <reporter>       Reporter to use, comma-separated
+  --reporter <reporter>       Reporter to use, comma-separated, such as tree of Xwright
   --retries <retries>         Maximum retry count for flaky tests
   --shard <shard>             Shard tests and execute only the selected shard, e.g. "1/3"
   --timeout <timeout>         Test timeout threshold in milliseconds
@@ -298,6 +299,9 @@ function parseShard(shard: string): { current: number; total: number } {
 function resolveReporter(name: string, cwd: string): string {
 	if (BUILT_IN_REPORTERS.includes(name)) {
 		return name;
+	}
+	if (resolveReporterName(name) !== name) {
+		return resolveReporterName(name);
 	}
 	const path = resolve(cwd, name);
 	if (existsSync(path)) {

@@ -16,6 +16,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"default": "./dist/index.js"
+		},
+		"./reporters/tree": {
+			"types": "./dist/reporters/tree.d.ts",
+			"default": "./dist/reporters/tree.js"
 		}
 	},
 	"bin": {

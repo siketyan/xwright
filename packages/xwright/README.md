@@ -36,6 +36,9 @@ test("signs in on the phone after signing up on the web", async () => {
   their tests.
 - `xwright export-trace [path...]` writes the traces into ZIP files, to upload from CI.
 
+The `tree` reporter (`reporter: [["tree"]]`) prints each test with its steps as a tree when the test ends, in a group
+of the log on GitHub Actions.
+
 See the [README of the repository](https://github.com/siketyan/xwright#readme) for the configuration, the traces and the adapters.
 
 ## License
