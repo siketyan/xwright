@@ -97,17 +97,53 @@ export function createStepFn(
 				stack: location === undefined ? [] : [location],
 			},
 			() =>
-				test.step(
-					title,
-					async () => {
-						await screenshot("before");
-						try {
-							return await fn();
-						} finally {
-							await screenshot("after");
-						}
-					},
-					{ location },
-				),
+				apiStep(title, location, async () => {
+					await screenshot("before");
+					try {
+						return await fn();
+					} finally {
+						await screenshot("after");
+					}
+				}),
 		);
+}
+
+/** The internal part of Playwright Test's `TestInfo` that adds a step, as Playwright does for the calls of its API. */
+interface StepAdder {
+	_addStep(data: {
+		title: string;
+		category: string;
+		location?: { file: string; line: number; column: number };
+	}): { complete(result: { error?: unknown }): void };
+}
+
+/**
+ * Runs an operation of Mobilewright as a step of the test, of the same category as a call of Playwright's API, or as
+ * an assertion for `expect`. Reporters then show it as Playwright's own: the list reporter prints only the steps of
+ * the test, and the HTML report shows it as an action. Outside a test, the operation just runs.
+ */
+async function apiStep<T>(
+	title: string,
+	location: { file: string; line: number; column: number } | undefined,
+	fn: () => Promise<T>,
+): Promise<T> {
+	let info: StepAdder;
+	try {
+		info = test.info() as unknown as StepAdder;
+	} catch {
+		return await fn();
+	}
+	const step = info._addStep({
+		title,
+		category: title.startsWith("expect.") ? "expect" : "pw:api",
+		location,
+	});
+	try {
+		const result = await fn();
+		step.complete({});
+		return result;
+	} catch (error) {
+		step.complete({ error });
+		throw error;
+	}
 }
