@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { relative } from "node:path";
+import { relative, resolve } from "node:path";
 import {
 	EXPORT_USAGE,
 	parseExportArgs,
@@ -10,7 +10,7 @@ import {
 	USAGE,
 	withoutUiArgs,
 } from "./args.js";
-import { openTrace, serveTrace } from "./trace/server.js";
+import { openTraces, serveTrace, serveTraces } from "./trace/server.js";
 import { findTraces, zipDirectory } from "./trace/zip.js";
 import { UiRunner } from "./ui/runner.js";
 import { serveRunner } from "./ui/server.js";
@@ -82,9 +82,21 @@ async function showTrace(args: string[]): Promise<number> {
 		console.log(SHOW_USAGE);
 		return 0;
 	}
-	const trace = parsed.path === undefined ? undefined : openTrace(parsed.path);
-	const { url } = await serveTrace(trace, parsed);
-	console.log(`Showing the trace at ${url}\nPress Ctrl+C to stop.`);
+	// Without a path, the traces of the last run, if any.
+	const results = resolve("test-results");
+	const path =
+		parsed.path ?? (findTraces([results]).length > 0 ? results : undefined);
+	const traces = path === undefined ? [] : openTraces(path);
+	if (path !== undefined && traces.length === 0) {
+		throw new Error(`${path} has no trace`);
+	}
+	const { url } =
+		traces.length > 1
+			? await serveTraces(traces, parsed)
+			: await serveTrace(traces[0]?.files, parsed);
+	console.log(
+		`${traces.length > 1 ? `Showing ${traces.length} traces` : "Showing the trace"} at ${url}\nPress Ctrl+C to stop.`,
+	);
 	// Serve until interrupted.
 	return await new Promise<number>((resolve) => {
 		process.once("SIGINT", () => resolve(0));

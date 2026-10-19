@@ -127,9 +127,10 @@ const token = secret(await issueToken());
 Screenshots are images, and are kept as they are; a secret shown on a screen, other than in a password field, stays
 in its screenshots.
 
-`xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser. Without a path, it opens a
-ZIP file dropped on the page, also the `traces` artifact of CI with the traces in it. A trace still being written is
-followed until its test ends.
+`xwright show-trace [path]` shows the traces at the path in the browser: a trace, its directory or a ZIP file of it, a
+directory with traces such as `test-results` (the default), or a ZIP file with traces such as the `traces` artifact of
+CI. The tests of several traces are listed as in `xwright test --ui`, with the same filters, to show the trace of each.
+Without traces, it opens a ZIP file dropped on the page. A trace still being written is followed until its test ends.
 
 `xwright test --ui` lists the tests in the browser to run them, all, filtered by words, statuses, projects and tags,
 or one at a time, and shows the trace of each test as it runs. Each run is a new `xwright test` with the same arguments, so the changes to the tests are picked up.
