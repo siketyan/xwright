@@ -1,6 +1,7 @@
 import { test as base } from "playwright/test";
 import { PROJECT_OPTIONS_KEY, type ProjectOptions } from "./config.js";
 import { WorkerSession } from "./lifecycle.js";
+import { configureRedaction } from "./trace/redact.js";
 
 /** The fixtures Xwright adds to Playwright Test. Tests do not use them directly. */
 export interface XwrightFixtures {
@@ -16,6 +17,7 @@ export const test = base.extend<{ _xwrightTest: undefined }, XwrightFixtures>({
 	[PROJECT_OPTIONS_KEY]: [{ devices: {} }, { option: true, scope: "worker" }],
 	_xwrightWorker: [
 		async ({ xwright }, use, workerInfo) => {
+			configureRedaction(xwright.redact);
 			const session = new WorkerSession(workerInfo, xwright.devices);
 			try {
 				await use(session);

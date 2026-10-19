@@ -4,6 +4,7 @@ import type {
 	PlaywrightTestProject,
 } from "playwright/test";
 import type { Adapter } from "./adapter.js";
+import type { RedactOptions } from "./trace/redact.js";
 
 /** When to keep the trace of a device. */
 export type TraceMode = "on" | "off" | "retain-on-failure" | "on-first-retry";
@@ -29,6 +30,8 @@ export interface ProjectConfig extends Omit<PlaywrightTestProject, "use"> {
 export interface Config
 	extends Omit<PlaywrightTestConfig, "use" | "webServer" | "projects"> {
 	projects?: ProjectConfig[];
+	/** What is kept out of the traces, such as passwords and tokens. */
+	redact?: RedactOptions;
 }
 
 /** A device of a project, as Xwright keeps it. */
@@ -43,6 +46,7 @@ export interface ResolvedDevice extends DeviceConfig {
 /** What Xwright puts in `use` of each Playwright Test project. */
 export interface ProjectOptions {
 	devices: Record<string, ResolvedDevice>;
+	redact?: RedactOptions;
 }
 
 /** The key of {@link ProjectOptions} in `use` of each Playwright Test project. */
@@ -57,7 +61,7 @@ export const PROJECT_OPTIONS_KEY = "xwright";
 export function defineConfig(
 	config: Config,
 ): PlaywrightTestConfig<object, { [PROJECT_OPTIONS_KEY]: ProjectOptions }> {
-	const { projects, globalSetup, ...rest } = config;
+	const { projects, globalSetup, redact, ...rest } = config;
 	const ids = new Map<Adapter, string>();
 	const resolve = (device: DeviceConfig): ResolvedDevice => {
 		let id = ids.get(device.adapter);
@@ -84,6 +88,7 @@ export function defineConfig(
 							resolve(device),
 						]),
 					),
+					redact,
 				} satisfies ProjectOptions,
 			},
 		})),
