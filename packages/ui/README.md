@@ -5,7 +5,8 @@ snapshots, and the logs, network and source of each action.
 
 It is a static web app that `xwright` serves, so install `xwright` and use its commands instead of this package:
 
-- `xwright show-trace [path]` shows a trace, also one still being written or a ZIP file dropped on the page.
+- `xwright show-trace [path]` shows a trace, also one still being written or a ZIP file dropped on the page, and lists
+  the tests of several traces as `xwright test --ui` does.
 - `xwright test --ui` runs the tests in the browser, with the trace of each test as it runs.
 
 ## License

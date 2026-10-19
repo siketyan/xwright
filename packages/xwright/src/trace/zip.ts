@@ -6,7 +6,7 @@ import { crc32, deflateRawSync, inflateRawSync } from "node:zlib";
 const DOS_EPOCH = ((1 << 5) | 1) << 16;
 
 /** Lists the files under the directory, recursively, in a stable order. */
-function listFiles(dir: string): string[] {
+export function listFiles(dir: string): string[] {
 	return readdirSync(dir, { recursive: true, withFileTypes: true })
 		.filter((entry) => entry.isFile())
 		.map((entry) => join(entry.parentPath, entry.name))
@@ -88,12 +88,17 @@ export function findTraces(paths: string[]): string[] {
 	return [...traces].sort();
 }
 
-/** Reads the entries of a ZIP archive written by {@link zipDirectory}, or by other tools without ZIP64. */
-export function readZip(file: string): Map<string, Buffer> {
-	const zip = readFileSync(file);
+/**
+ * Reads the entries of a ZIP archive, a file or its content, written by {@link zipDirectory}, or by other tools
+ * without ZIP64.
+ */
+export function readZip(file: string | Buffer): Map<string, Buffer> {
+	const zip = typeof file === "string" ? readFileSync(file) : file;
 	const end = zip.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
 	if (end < 0) {
-		throw new Error(`${file} is not a ZIP archive`);
+		throw new Error(
+			`${typeof file === "string" ? file : "The file"} is not a ZIP archive`,
+		);
 	}
 	const count = zip.readUInt16LE(end + 10);
 	let position = zip.readUInt32LE(end + 16);

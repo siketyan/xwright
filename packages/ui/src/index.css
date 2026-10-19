@@ -383,21 +383,16 @@ header h1 {
 	min-height: 100vh;
 }
 
-.drop-zone,
-.picker {
+.drop-zone {
 	max-width: 640px;
 	margin: 15vh auto 0;
 	padding: 24px;
 	text-align: center;
-}
-
-.drop-zone {
 	border: 2px dashed var(--border);
 	border-radius: 8px;
 }
 
-.drop-zone h1,
-.picker h1 {
+.drop-zone h1 {
 	font-size: 18px;
 }
 
@@ -411,19 +406,6 @@ header h1 {
 
 .file-button input {
 	display: none;
-}
-
-.picker ul {
-	list-style: none;
-	padding: 0;
-	text-align: left;
-}
-
-.picker button {
-	width: 100%;
-	text-align: left;
-	padding: 6px 8px;
-	border-bottom: 1px solid var(--border);
 }
 
 .drop-overlay {
