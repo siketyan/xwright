@@ -111,11 +111,15 @@ export class WorkerSession {
 		}
 	}
 
-	/** Marks `afterAll` of the device due, to run after the user's `afterAll`. */
+	/**
+	 * Marks `afterAll` of the device due, to run after the user's `afterAll`. Ends the trace of the test, when a
+	 * `beforeAll` failed and no `afterEach` ran to end it.
+	 */
 	afterAll(name: string, testInfo: TestInfo): void {
 		if (this.file?.file === testInfo.file) {
 			this.file.ended.set(name, testInfo);
 		}
+		this.traces.endTest(testInfo);
 	}
 
 	/** Runs `afterAll` that is due, and forgets the file. Errors are reported when the worker ends. */
