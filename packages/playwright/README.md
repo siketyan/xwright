@@ -59,6 +59,14 @@ A browser is launched per worker, and every test gets a fresh browser context an
 
 The handle that `use()` returns is `{ browser, context, page, expect }`.
 
+The types of Playwright that tests use most are exported too, so that the tests need no dependency on Playwright of
+their own: `Page`, `Locator`, `FrameLocator`, `Frame`, `ElementHandle`, `BrowserContext`, `Browser`, `Request`,
+`Response`, `Route` and `APIRequestContext`.
+
+```ts
+import type { Locator, Page } from "@xwright/playwright";
+```
+
 When the device is traced, every call of Playwright's API is an action, with the logs, DOM snapshots, screenshots,
 console messages and network of Playwright's trace.
 

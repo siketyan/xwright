@@ -79,6 +79,14 @@ adapter: appium(({ parallelIndex }) => ({
 
 The handle that `use()` returns is `{ driver, expect }`: the session of WebdriverIO, and its `expect`.
 
+The types of WebdriverIO that tests use most are exported too, so that the tests need no dependency on WebdriverIO of
+their own: `Browser`, the type of `driver`, `Element`, `ChainablePromiseElement`, `ChainablePromiseArray` and
+`Selector`.
+
+```ts
+import type { ChainablePromiseElement } from "@xwright/appium";
+```
+
 When the device is traced, every command sent to the Appium server is an action, under the step of the test that sent
 it, with a screenshot after the ones that change the screen.
 

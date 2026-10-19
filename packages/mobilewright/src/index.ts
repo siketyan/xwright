@@ -19,6 +19,18 @@ import {
 import { startDevicePool, stopDevicePool } from "./device-pool.js";
 import { createStepFn, type ScreenshotPhase } from "./trace.js";
 
+/** The types of Mobilewright that tests use most, so that they need no dependency on Mobilewright of their own. */
+export type {
+	Device,
+	Dialog,
+	Locator,
+	MobileWebViewLocator,
+	MobileWebViewPage,
+	Page,
+	Role,
+	Screen,
+	WebLocator,
+} from "mobilewright";
 export type { ScreenshotPhase };
 
 /** The options of {@link mobilewright}, the same as Mobilewright's `use` and `expect` options. */

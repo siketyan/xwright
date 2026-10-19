@@ -68,6 +68,14 @@ device, and the app of `bundleId` is relaunched before each test.
 
 The handle that `use()` returns is `{ device, screen, expect }`.
 
+The types of Mobilewright that tests use most are exported too, so that the tests need no dependency on Mobilewright
+of their own: `Device`, `Screen`, `Locator`, `Role`, `Dialog`, and `Page`, `WebLocator`, `MobileWebViewPage` and
+`MobileWebViewLocator` of web views.
+
+```ts
+import type { Locator, Screen } from "@xwright/mobilewright";
+```
+
 When the device is traced, each operation such as a tap is an action, with a screenshot after it. The commands the
 driver sends for an operation, such as reading the view hierarchy while an assertion waits, are left out.
 
