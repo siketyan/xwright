@@ -107,6 +107,26 @@ The trace of a test is written to `xwright-trace` in its output directory, and a
 - `test.ndjson`: the steps of `step()`, the output and the errors of the test.
 - `<device>.ndjson` and `<device>/resources/`: the actions, snapshots, logs and communications of each device.
 
+Passwords, tokens and other secrets are kept out of the traces: every event, `trace.json` and every text resource,
+such as the bodies of the network, has them replaced with `[redacted]`, also as written in URLs and JSON. List the
+secrets known beforehand in the configuration, and wrap the ones known only during a test with `secret()`. The values
+of `Authorization`, `Proxy-Authorization`, `Cookie` and `Set-Cookie` headers are always left out.
+
+```ts
+export default defineConfig({
+  redact: { secrets: [process.env.ADMIN_PASSWORD], headers: ["x-api-key"] },
+});
+```
+
+```ts
+import { secret } from "xwright";
+
+const token = secret(await issueToken());
+```
+
+Screenshots are images, and are kept as they are; a secret shown on a screen, other than in a password field, stays
+in its screenshots.
+
 `xwright show-trace <path>` shows a trace, its directory or a ZIP file of it, in the browser. Without a path, it opens a
 ZIP file dropped on the page, also the `traces` artifact of CI with the traces in it. A trace still being written is
 followed until its test ends.
