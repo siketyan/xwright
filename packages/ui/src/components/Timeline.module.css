@@ -1,0 +1,96 @@
+.timeline {
+	border-bottom: 1px solid var(--border);
+	padding: 4px 0;
+}
+
+.row {
+	display: flex;
+	align-items: center;
+	height: 28px;
+}
+
+.axis {
+	height: 18px;
+	color: var(--muted);
+	font-size: 11px;
+}
+
+.screens {
+	height: 52px;
+}
+
+.label {
+	width: 140px;
+	flex: none;
+	padding: 0 12px;
+	display: flex;
+	align-items: center;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.lane {
+	position: relative;
+	flex: 1;
+	height: 100%;
+	margin-right: 12px;
+}
+
+.tick {
+	position: absolute;
+	transform: translateX(-50%);
+}
+
+.toggle {
+	font-size: 11px;
+	padding: 0 6px;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	color: var(--muted);
+}
+
+.toggle[aria-pressed="true"] {
+	color: var(--fg);
+	background: var(--selected);
+}
+
+.bar {
+	position: absolute;
+	top: 8px;
+	height: 12px;
+	border-radius: 3px;
+	opacity: 0.75;
+}
+
+.screenBar {
+	top: 1px;
+	height: 50px;
+	display: flex;
+	gap: 1px;
+	overflow: hidden;
+	padding: 0;
+	border: 1px solid var(--border);
+	background: var(--panel);
+	opacity: 1;
+}
+
+.selected {
+	opacity: 1;
+	outline: 2px solid var(--fg);
+}
+
+.failed {
+	outline: 2px solid var(--error);
+}
+
+.frame {
+	flex: none;
+	height: 48px;
+	object-fit: contain;
+}
+
+.probe {
+	position: absolute;
+	height: 48px;
+	visibility: hidden;
+}

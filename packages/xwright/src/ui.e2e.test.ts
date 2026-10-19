@@ -131,20 +131,47 @@ it("shows the actions, the screen and the details of a trace", async () => {
 		await expect(timeline.getByText("phone", { exact: true })).toBeVisible();
 
 		// The action of the phone shows its screen on the timeline, until that is turned off, which is remembered.
-		const screens = timeline.locator('[data-track="phone"] .timeline-bar img');
+		const screens = timeline.locator('[data-track="phone"] button img');
 		const toggle = timeline.getByRole("button", { name: "Screenshots" });
 		await expect(screens.first()).toBeVisible();
 		await expect(toggle).toHaveAttribute("aria-pressed", "true");
 		await toggle.click();
 		await expect(screens).toHaveCount(0);
-		await expect(
-			timeline.locator('[data-track="phone"] .timeline-bar'),
-		).toBeVisible();
+		await expect(timeline.locator('[data-track="phone"] button')).toBeVisible();
 		await page.reload();
 		await expect(toggle).toHaveAttribute("aria-pressed", "false");
 		await expect(screens).toHaveCount(0);
 		await toggle.click();
 		await expect(screens.first()).toBeVisible();
+
+		// The actions are resized by dragging the bar next to them, which is remembered.
+		const actionsPane = page.getByRole("navigation", { name: "Actions" });
+		const splitter = page.getByRole("separator", {
+			name: "Resize the actions",
+		});
+		const before = (await actionsPane.boundingBox())?.width ?? 0;
+		const bar = await splitter.boundingBox();
+		if (bar === null) {
+			throw new Error("The splitter is not shown");
+		}
+		await page.mouse.move(bar.x + bar.width / 2, bar.y + bar.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(bar.x + 100, bar.y + bar.height / 2, { steps: 5 });
+		await page.mouse.up();
+		await expect
+			.poll(async () => (await actionsPane.boundingBox())?.width)
+			.toBeGreaterThan(before + 80);
+		const resized = (await actionsPane.boundingBox())?.width ?? 0;
+		await page.reload();
+		await expect
+			.poll(async () => (await actionsPane.boundingBox())?.width)
+			.toBeCloseTo(resized, 0);
+		// The arrow keys move the bar too.
+		await splitter.focus();
+		await page.keyboard.press("ArrowLeft");
+		await expect
+			.poll(async () => (await actionsPane.boundingBox())?.width)
+			.toBeLessThan(resized);
 
 		// The action of the phone is under the step, with the screenshot after it.
 		const actions = page.getByRole("navigation", { name: "Actions" });
@@ -169,7 +196,7 @@ it("shows the actions, the screen and the details of a trace", async () => {
 
 		// The line of this file the stack points to.
 		await page.getByRole("tab", { name: "Source" }).click();
-		await expect(panel.locator("li.current")).toHaveText(
+		await expect(panel.locator('li[aria-current="true"]')).toHaveText(
 			'import { join } from "node:path";',
 		);
 

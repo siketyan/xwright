@@ -1,0 +1,57 @@
+.snapshot {
+	overflow: auto;
+	padding: 12px;
+	background: var(--panel);
+}
+
+.snapshot figure {
+	margin: 0;
+}
+
+.snapshot figcaption {
+	color: var(--muted);
+	margin-bottom: 8px;
+}
+
+.snapshot details {
+	margin-top: 8px;
+}
+
+.screen {
+	position: relative;
+	display: inline-block;
+}
+
+.screen img {
+	max-width: 100%;
+	max-height: 50vh;
+	border: 1px solid var(--border);
+}
+
+.point {
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	margin: -8px 0 0 -8px;
+	border-radius: 50%;
+	background: rgba(220, 38, 38, 0.6);
+	border: 2px solid #ffffff;
+}
+
+.views {
+	display: flex;
+	gap: 4px;
+	margin: 0 0 8px;
+	padding: 0;
+	border: none;
+}
+
+.views button {
+	padding: 2px 10px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+}
+
+.views button[aria-pressed="true"] {
+	background: var(--selected);
+}

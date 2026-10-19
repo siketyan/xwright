@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { watchTrace } from "../model/live.ts";
 import type { RunnerTest, StatusFilter, TestFilter } from "../model/runner.ts";
 import type { TraceSource } from "../model/source.ts";
 import type { Trace } from "../model/trace.ts";
+import common from "./common.module.css";
+import { cx } from "./cx.ts";
+import { Splitter, usePaneSize } from "./Splitter.tsx";
+import styles from "./TestList.module.css";
 import { TraceView } from "./TraceView.tsx";
 
 const STATUS_ICONS: Record<NonNullable<RunnerTest["status"]> | "none", string> =
@@ -22,6 +26,53 @@ const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
 	{ value: "skipped", label: "Skipped" },
 	{ value: "none", label: "Not run" },
 ];
+
+/**
+ * The layout of a list of tests: the list on the left, resized by dragging the bar next to it, and the trace of the
+ * selected test.
+ */
+export function TestsLayout({
+	sidebar,
+	children,
+}: {
+	sidebar: ReactNode;
+	children: ReactNode;
+}) {
+	const [width, setWidth] = usePaneSize("tests", "300px");
+	return (
+		<div
+			className={styles.layout}
+			style={{ gridTemplateColumns: `${width} auto minmax(0, 1fr)` }}
+		>
+			<aside className={styles.tests} aria-label="Tests">
+				{sidebar}
+			</aside>
+			<Splitter
+				orientation="vertical"
+				label="Resize the tests"
+				onResize={setWidth}
+			/>
+			<section className={styles.trace}>{children}</section>
+		</div>
+	);
+}
+
+/** The number of the tests in the list, of all of them when a filter is set. */
+export function TestCount({
+	visible,
+	total,
+	filtered,
+}: {
+	visible: number;
+	total: number;
+	filtered: boolean;
+}) {
+	return (
+		<p className={styles.count}>
+			{filtered ? `${visible} of ${total} tests` : `${total} tests`}
+		</p>
+	);
+}
 
 /** The tests, grouped by file, to select one, and to run one when `run` is given. */
 export function TestTree({
@@ -43,34 +94,40 @@ export function TestTree({
 		<ul>
 			{[...files].map(([file, tests]) => (
 				<li key={file}>
-					<h2 className="test-file">{file}</h2>
+					<h2 className={styles.file}>{file}</h2>
 					<ul>
 						{tests.map((test) => {
 							const title = test.titles.join(" › ");
 							return (
 								<li
 									key={test.id}
-									className={`test${test.id === selectedId ? " selected" : ""}`}
+									className={cx(
+										styles.test,
+										test.id === selectedId && styles.selected,
+									)}
 								>
 									<button
 										type="button"
-										className="test-title"
+										className={styles.title}
 										aria-current={test.id === selectedId ? "true" : undefined}
 										onClick={() => onSelect(test.id)}
 									>
 										<span
-											className={`test-status status-${test.status ?? "none"}`}
+											className={cx(
+												styles.status,
+												common[test.status ?? "none"],
+											)}
 											title={test.status ?? "not run"}
 										>
 											{STATUS_ICONS[test.status ?? "none"]}
 										</span>
 										{title}
-										<span className="project">{test.project}</span>
+										<span className={common.project}>{test.project}</span>
 									</button>
 									{run !== undefined && (
 										<button
 											type="button"
-											className="test-run"
+											className={styles.run}
 											aria-label={`Run ${title} in ${test.project}`}
 											disabled={run.disabled}
 											onClick={() => run.onRun(test.id)}
@@ -111,7 +168,7 @@ export function Filters({
 		return next;
 	};
 	return (
-		<div className="filters">
+		<div className={styles.filters}>
 			<input
 				type="search"
 				aria-label="Filter tests"
@@ -170,7 +227,7 @@ function FilterGroup<T extends string>({
 	onToggle(value: T): void;
 }) {
 	return (
-		<fieldset className="filter-group">
+		<fieldset className={styles.filterGroup}>
 			<legend>{label}</legend>
 			{options.map((option) => (
 				<button
@@ -203,5 +260,5 @@ export function LiveTrace({ open }: { open(): Promise<TraceSource> }) {
 	if (trace !== undefined) {
 		return <TraceView trace={trace} />;
 	}
-	return <p className="message">{error ?? "Loading the trace…"}</p>;
+	return <p className={common.message}>{error ?? "Loading the trace…"}</p>;
 }

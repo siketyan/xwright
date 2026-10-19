@@ -1,0 +1,15 @@
+.toolbar {
+	display: flex;
+	gap: 4px;
+	padding: 6px 8px;
+	border-bottom: 1px solid var(--border);
+}
+
+.toolbar button {
+	padding: 2px 8px;
+	border-radius: 4px;
+}
+
+.toolbar button:hover:not(:disabled) {
+	background: var(--panel);
+}
