@@ -1,6 +1,6 @@
 {
 	"name": "@xwright/ui",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "The UI of Xwright, which shows the traces",
 	"license": "Apache-2.0",
 	"repository": {
