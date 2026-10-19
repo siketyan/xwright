@@ -32,7 +32,6 @@ it("prints each test with its steps as a tree when it ends", async () => {
 			"✓ [phone] › tree.e2e.ts:12 › signs in",
 			"  └─ open the app",
 			"     └─ tap Sign in",
-			'        └─ Expect "toBe"',
 			"  │ signed in",
 		].join("\n"),
 	);
@@ -61,6 +60,25 @@ it("prints each test with its steps as a tree when it ends", async () => {
 	expect(output).not.toContain("\u001b[");
 }, 60_000);
 
+it("shows every call and assertion with actions", async () => {
+	const output = await run({ NO_COLOR: "1", TREE_ACTIONS: "1" });
+	expect(output).toContain(
+		[
+			"✓ [phone] › tree.e2e.ts:12 › signs in",
+			"  └─ open the app",
+			"     └─ tap Sign in",
+			'        └─ Expect "toBe"',
+			"  │ signed in",
+		].join("\n"),
+	);
+	expect(output).toContain(
+		[
+			"✓ [phone] › tree.e2e.ts:27 › is flaky (retry #1)",
+			'  └─ Expect "toBe"',
+		].join("\n"),
+	);
+}, 60_000);
+
 it("puts the steps of each test in a group of GitHub Actions, with the error after it", async () => {
 	const output = await run({ GITHUB_ACTIONS: "true", NO_COLOR: "1" });
 	expect(output).toContain(
@@ -68,7 +86,6 @@ it("puts the steps of each test in a group of GitHub Actions, with the error aft
 			"::group::✓ [phone] › tree.e2e.ts:12 › signs in",
 			"  └─ open the app",
 			"     └─ tap Sign in",
-			'        └─ Expect "toBe"',
 			"  │ signed in",
 			"::endgroup::",
 		].join("\n"),
