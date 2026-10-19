@@ -9,6 +9,7 @@ export default defineConfig({
 	testMatch: "*.e2e.ts",
 	outputDir: "test-results",
 	reporter: [["json", { outputFile: "results.json" }]],
+	redact: { secrets: ["correct horse battery staple"], headers: ["x-api-key"] },
 	projects: [
 		{
 			name: "traced",

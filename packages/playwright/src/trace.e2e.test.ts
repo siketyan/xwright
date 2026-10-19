@@ -107,3 +107,29 @@ it("converts Playwright's live trace into the track of the device", async () => 
 		"web.ndjson",
 	]);
 }, 60_000);
+
+// Reads the trace of the run of the fixture by the test above.
+it("keeps the secrets out of every file of the trace", async () => {
+	const trace = fileURLToPath(
+		new URL(
+			"test-results/web.e2e.ts-keeps-the-secrets-out-of-the-trace-traced/xwright-trace/",
+			fixture,
+		),
+	);
+	const files = readdirSync(trace, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile())
+		.map((entry) => join(entry.parentPath, entry.name));
+	const contents = files.map((file) => readFileSync(file, "latin1"));
+	const all = contents.join("\n");
+	// The password typed, logged and sent, and the token of the response.
+	expect(all).not.toContain("correct horse battery staple");
+	expect(all).not.toContain("correct%20horse");
+	// A header named in the configuration is left out, though its value is in the source of the page.
+	expect(all).toMatch(/"X-Api-Key","value":"\[redacted\]"/);
+	expect(all).not.toMatch(/"X-Api-Key","value":"api-key-1234"/);
+	expect(all).not.toMatch(/token-\d+/);
+	expect(all).toContain("[redacted]");
+	// The test ran, and its output is still there without the secrets.
+	expect(all).toContain("signing in with [redacted]");
+	expect(all).toMatch(/TOKEN_LENGTH=\d+/);
+});
