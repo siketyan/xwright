@@ -10,7 +10,7 @@ import type {
 	TestStep,
 } from "playwright/types/testReporter";
 
-/** The categories of the actions: the calls of the APIs and the assertions, shown only with `actions` or when failed. */
+/** The categories of the actions: the calls of the APIs and the assertions, shown only with `showActions` or when failed. */
 const ACTIONS = new Set(["pw:api", "expect"]);
 
 /** The categories of the steps shown only when a step under them is shown or failed: the hooks and the fixtures. */
@@ -45,7 +45,7 @@ function colorEnabled(): boolean {
 /** The options of the tree reporter. */
 export interface TreeReporterOptions {
 	/** Whether to show every call of the APIs and assertion, not only the failed ones. */
-	actions?: boolean;
+	showActions?: boolean;
 }
 
 /** A node of the tree of a test: a step, with the steps under it to show. */
@@ -58,16 +58,16 @@ interface Node {
  * Prints each test with its steps as a tree when the test ends, so that the output of tests running in parallel does not
  * interleave. On GitHub Actions, the steps of each test are in a group of the log, with the errors after it.
  *
- * The tree shows the steps of `step()`, and the calls and assertions under them only when they failed. With `actions`,
+ * The tree shows the steps of `step()`, and the calls and assertions under them only when they failed. With `showActions`,
  * it shows every call and assertion.
  *
  * ```ts
  * reporter: [["tree"]]
- * reporter: [["tree", { actions: true }]]
+ * reporter: [["tree", { showActions: true }]]
  * ```
  */
 export default class TreeReporter implements Reporter {
-	private readonly actions: boolean;
+	private readonly showActions: boolean;
 	private readonly colors = colorEnabled();
 	private readonly github = process.env.GITHUB_ACTIONS === "true";
 	private rootDir = "";
@@ -78,7 +78,7 @@ export default class TreeReporter implements Reporter {
 	private skipped = 0;
 
 	constructor(options: TreeReporterOptions = {}) {
-		this.actions = options.actions ?? false;
+		this.showActions = options.showActions ?? false;
 	}
 
 	onBegin(config: FullConfig, suite: Suite): void {
@@ -209,7 +209,7 @@ export default class TreeReporter implements Reporter {
 	}
 
 	/**
-	 * The steps to show: the steps of `step()`, the actions with `actions` or when failed, and the hooks and fixtures with
+	 * The steps to show: the steps of `step()`, the actions with `showActions` or when failed, and the hooks and fixtures with
 	 * shown or failed steps under them.
 	 */
 	private nodes(steps: TestStep[]): Node[] {
@@ -219,7 +219,7 @@ export default class TreeReporter implements Reporter {
 			if (step.category === "test.step") {
 				nodes.push({ step, children });
 			} else if (ACTIONS.has(step.category)) {
-				if (this.actions || step.error !== undefined) {
+				if (this.showActions || step.error !== undefined) {
 					nodes.push({ step, children });
 				}
 			} else if (CONTAINERS.has(step.category)) {

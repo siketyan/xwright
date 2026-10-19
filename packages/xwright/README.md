@@ -38,7 +38,7 @@ test("signs in on the phone after signing up on the web", async () => {
 
 The `tree` reporter (`reporter: [["tree"]]`) prints each test with its steps as a tree when the test ends, in a group
 of the log on GitHub Actions. The calls of the APIs and the assertions are shown only when they failed, or always with
-`["tree", { actions: true }]`.
+`["tree", { showActions: true }]`.
 
 See the [README of the repository](https://github.com/siketyan/xwright#readme) for the configuration, the traces and the adapters.
 

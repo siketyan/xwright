@@ -10,7 +10,7 @@ export default defineConfig({
 	workers: 1,
 	retries: 1,
 	reporter: [
-		["tree", { actions: process.env.TREE_ACTIONS === "1" }],
+		["tree", { showActions: process.env.TREE_ACTIONS === "1" }],
 		["json", { outputFile: "results.json" }],
 	],
 	projects: [{ name: "phone", devices: { phone: { adapter: fake() } } }],

@@ -60,7 +60,7 @@ it("prints each test with its steps as a tree when it ends", async () => {
 	expect(output).not.toContain("\u001b[");
 }, 60_000);
 
-it("shows every call and assertion with actions", async () => {
+it("shows every call and assertion with showActions", async () => {
 	const output = await run({ NO_COLOR: "1", TREE_ACTIONS: "1" });
 	expect(output).toContain(
 		[

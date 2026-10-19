@@ -114,14 +114,14 @@ See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete exampl
 
 The `tree` reporter of Xwright prints each test with the steps of `step()` as a tree when the test ends, so that the
 output of tests running in parallel does not interleave. The calls of the APIs and the assertions are shown only when
-they failed, or always with `actions: true`. On GitHub Actions, the steps of each test are in a group of the log, with
+they failed, or always with `showActions: true`. On GitHub Actions, the steps of each test are in a group of the log, with
 the errors after it. Statuses and errors are colored on a terminal and on GitHub Actions, unless `NO_COLOR` is set.
 
 ```ts
 export default defineConfig({
   reporter: [["tree"]],
   // Or, to show every call and assertion:
-  // reporter: [["tree", { actions: true }]],
+  // reporter: [["tree", { showActions: true }]],
 });
 ```
 
