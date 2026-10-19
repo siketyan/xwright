@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import {
 	EXPORT_USAGE,
@@ -11,7 +12,7 @@ import {
 	withoutUiArgs,
 } from "./args.js";
 import { openTraces, serveTrace, serveTraces } from "./trace/server.js";
-import { findTraces, zipDirectory } from "./trace/zip.js";
+import { exportTrace as exportTraceTo, findTraces } from "./trace/zip.js";
 import { UiRunner } from "./ui/runner.js";
 import { serveRunner } from "./ui/server.js";
 
@@ -70,7 +71,7 @@ function exportTrace(args: string[]): number {
 	}
 	for (const trace of traces) {
 		const output = parsed.output ?? `${trace}.zip`;
-		zipDirectory(trace, output);
+		exportTraceTo(trace, output);
 		console.log(relative(process.cwd(), output));
 	}
 	return 0;
@@ -82,13 +83,12 @@ async function showTrace(args: string[]): Promise<number> {
 		console.log(SHOW_USAGE);
 		return 0;
 	}
-	// Without a path, the traces of the last run, if any.
+	// Without a path, the traces of the last run, as directories or exported into ZIP files, if any.
 	const results = resolve("test-results");
-	const path =
-		parsed.path ?? (findTraces([results]).length > 0 ? results : undefined);
+	const path = parsed.path ?? (existsSync(results) ? results : undefined);
 	const traces = path === undefined ? [] : openTraces(path);
-	if (path !== undefined && traces.length === 0) {
-		throw new Error(`${path} has no trace`);
+	if (parsed.path !== undefined && traces.length === 0) {
+		throw new Error(`${parsed.path} has no trace`);
 	}
 	const { url } =
 		traces.length > 1

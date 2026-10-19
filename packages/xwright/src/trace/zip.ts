@@ -1,4 +1,10 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { basename, dirname, join, relative, sep } from "node:path";
 import { crc32, deflateRawSync, inflateRawSync } from "node:zlib";
 
@@ -66,6 +72,18 @@ export function zipDirectory(dir: string, output: string): void {
 	end.writeUInt32LE(centralDirectory.length, 12);
 	end.writeUInt32LE(offset, 16);
 	writeFileSync(output, Buffer.concat([...locals, centralDirectory, end]));
+}
+
+/**
+ * Writes the trace of the directory into a ZIP file, and deletes the directory, as Playwright keeps its traces as ZIP
+ * files only.
+ */
+export function exportTrace(dir: string, output: string): void {
+	if (`${output}${sep}`.startsWith(`${dir}${sep}`)) {
+		throw new Error(`${output} is in the trace ${dir}`);
+	}
+	zipDirectory(dir, output);
+	rmSync(dir, { recursive: true, force: true });
 }
 
 /** Finds the directories of traces under the paths, which have `trace.json`, such as the output directory of tests. */
