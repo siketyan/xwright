@@ -39,7 +39,12 @@ test("keeps the secrets out of the trace", async () => {
 	await web.page.goto("https://xwright.test/login");
 	await web.page.fill("#password", "correct horse battery staple");
 	console.log("signing in with correct horse battery staple");
+	// The request is finished, with its entry of the network, before the test ends.
+	const finished = web.page.waitForEvent("requestfinished", (request) =>
+		request.url().endsWith("/api"),
+	);
 	await web.page.getByRole("button").click();
+	await finished;
 	await web.expect(web.page).toHaveTitle(token);
 	console.log(`TOKEN_LENGTH=${token.length}`);
 });
