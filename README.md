@@ -21,7 +21,8 @@ fake washer runs it, and the dashboard on the web follows.
 
 | Package | Description |
 | --- | --- |
-| [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()`, and the adapter SDK |
+| [`xwright`](./packages/xwright) | The CLI, the runner, `use()` and `step()` |
+| [`@xwright/core`](./packages/core) | The SDK to write adapters |
 | [`@xwright/playwright`](./packages/playwright) | The official adapter for the web, built on Playwright |
 | [`@xwright/mobilewright`](./packages/mobilewright) | The official adapter for iOS and Android, built on Mobilewright |
 | [`@xwright/ui`](./packages/ui) | The UI that shows the traces |
@@ -200,12 +201,14 @@ indices 0.
 
 ### Adapters
 
-Any other device comes in through an adapter, written outside this repository with `defineAdapter`. Every hook is
+Any other device comes in through an adapter, written outside this repository with `defineAdapter` of
+`@xwright/core`. An adapter depends on `@xwright/core` instead of `xwright`, so that it does not need a release for
+every release of `xwright`; `xwright` exports the same, for an adapter written next to the tests. Every hook is
 optional except `create`, and the hooks run outside the user's. `createOnce` and `disposeOnce` run once in the whole
 run, in the runner, and the value `createOnce` returns reaches every worker as `ctx.shared`.
 
 ```ts
-import { defineAdapter } from "xwright";
+import { defineAdapter } from "@xwright/core";
 
 export const band = defineAdapter<{ address: string }, BandHandle>({
   name: "my-band",

@@ -2,7 +2,7 @@ import { closeSync, openSync, readSync, rmSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 import { StringDecoder } from "node:string_decoder";
-import type { ActionSpan, StackFrame, Tracer } from "xwright";
+import type { ActionSpan, StackFrame, Tracer } from "@xwright/core";
 
 /** What Playwright passes to the listeners of its client-side instrumentation for each call of the API. */
 interface ApiCallData {

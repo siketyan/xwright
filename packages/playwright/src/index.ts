@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { defineAdapter, type Tracer } from "@xwright/core";
 import {
 	type Browser,
 	type BrowserContext,
@@ -12,7 +13,6 @@ import {
 	webkit,
 } from "playwright";
 import { expect } from "playwright/test";
-import { defineAdapter, type Tracer } from "xwright";
 import { ApiCallRecorder, LiveTraceConverter } from "./trace.js";
 
 /** The options of {@link playwright}. */

@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { ActionMeta, ActionSpan, EndOptions, Tracer } from "../trace.js";
+import type { ActionMeta, ActionSpan, EndOptions, Tracer } from "@xwright/core";
 import { hostTime } from "./clock.js";
 import type { Track } from "./directory.js";
 import { captureStack, filterStack } from "./stack.js";

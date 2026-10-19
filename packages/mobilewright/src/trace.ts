@@ -1,6 +1,6 @@
+import type { Tracer } from "@xwright/core";
 import type { Device, MobilewrightDriver } from "mobilewright";
 import { test } from "playwright/test";
-import type { Tracer } from "xwright";
 
 /** When to take a screenshot around an operation of Mobilewright. */
 export type ScreenshotPhase = "before" | "after";

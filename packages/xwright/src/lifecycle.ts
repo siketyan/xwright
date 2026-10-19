@@ -1,3 +1,4 @@
+import type { ActionMeta } from "@xwright/core";
 import type { TestInfo, WorkerInfo } from "playwright/test";
 import type {
 	Adapter,
@@ -11,7 +12,6 @@ import type { ResolvedDevice } from "./config.js";
 import { requestShared } from "./coordinator.js";
 import { deleteTarget, setTarget } from "./runtime.js";
 import { TraceSession } from "./trace/session.js";
-import type { ActionMeta } from "./trace.js";
 
 type AnyDefinition = AdapterDefinition<unknown, object, Json>;
 

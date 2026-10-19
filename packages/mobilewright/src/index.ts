@@ -1,4 +1,5 @@
 import { MobilecliDriver } from "@mobilewright/driver-mobilecli";
+import { defineAdapter } from "@xwright/core";
 import {
 	type AllocationHandle,
 	connectDevice,
@@ -13,7 +14,6 @@ import {
 	terminateAppIfRunning,
 	toArray,
 } from "mobilewright";
-import { defineAdapter } from "xwright";
 import { startDevicePool, stopDevicePool } from "./device-pool.js";
 import { createStepFn, type ScreenshotPhase } from "./trace.js";
 

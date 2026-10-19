@@ -22,7 +22,10 @@
 		"dist"
 	],
 	"dependencies": {
-		"playwright": "1.63.0",
+		"@xwright/core": "workspace:^",
+		"playwright": "1.63.0"
+	},
+	"devDependencies": {
 		"xwright": "workspace:*"
 	}
 }

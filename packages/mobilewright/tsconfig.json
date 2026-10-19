@@ -8,7 +8,7 @@
 	"exclude": ["src/**/*.test.ts"],
 	"references": [
 		{
-			"path": "../xwright"
+			"path": "../core"
 		}
 	]
 }
