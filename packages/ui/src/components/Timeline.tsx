@@ -248,6 +248,7 @@ function ScreenBars({
 					<img
 						// biome-ignore lint/suspicious/noArrayIndexKey: a frame can fill more than one slot, which are in order.
 						key={slot}
+						className="timeline-screen-frame"
 						src={trace.url(frame.file)}
 						alt=""
 						style={{ width: frameWidth }}

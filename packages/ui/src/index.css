@@ -152,7 +152,7 @@ header h1 {
 	opacity: 1;
 }
 
-.timeline-bar.timeline-screen-bar img {
+.timeline-screen-frame {
 	flex: none;
 	height: 48px;
 	object-fit: contain;
