@@ -1,4 +1,4 @@
-import type { Action, Snapshot, Trace } from "./trace.ts";
+import type { Action, ScreencastFrame, Snapshot, Trace } from "./trace.ts";
 
 /** The action and its descendants, depth first. */
 export function* descendants(action: Action): Generator<Action> {
@@ -157,4 +157,45 @@ export function domViews(action: Action): DomView[] {
 		}
 	}
 	return last;
+}
+
+/** The frames of the filmstrip of the track: its screencast, or its screenshots when it has none. */
+export function filmstripFrames(
+	trace: Trace,
+	track: string,
+): ScreencastFrame[] {
+	const screencast = trace.screencast.filter((frame) => frame.track === track);
+	return screencast.length > 0
+		? screencast
+		: trace.screenshots.filter((frame) => frame.track === track);
+}
+
+/**
+ * The frames to show in `count` slots of the time from `start` to `end`: in each, the last frame up to the end of the
+ * slot, so that a screenshot taken at the end of an action is in its last slot, or the first frame before any. The
+ * frames are in the order of their times.
+ */
+export function framesAt(
+	frames: ScreencastFrame[],
+	start: number,
+	end: number,
+	count: number,
+): ScreencastFrame[] {
+	const [first] = frames;
+	if (first === undefined || count <= 0) {
+		return [];
+	}
+	const shown: ScreencastFrame[] = [];
+	let index = 0;
+	for (let slot = 0; slot < count; slot++) {
+		const time = start + ((end - start) * (slot + 1)) / count;
+		while (
+			index + 1 < frames.length &&
+			(frames[index + 1]?.time ?? 0) <= time
+		) {
+			index += 1;
+		}
+		shown.push(frames[index] ?? first);
+	}
+	return shown;
 }

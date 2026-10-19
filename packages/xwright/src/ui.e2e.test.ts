@@ -130,6 +130,22 @@ it("shows the actions, the screen and the details of a trace", async () => {
 		await expect(timeline.getByText("test", { exact: true })).toBeVisible();
 		await expect(timeline.getByText("phone", { exact: true })).toBeVisible();
 
+		// The action of the phone shows its screen on the timeline, until that is turned off, which is remembered.
+		const screens = timeline.locator('[data-track="phone"] .timeline-bar img');
+		const toggle = timeline.getByRole("button", { name: "Screenshots" });
+		await expect(screens.first()).toBeVisible();
+		await expect(toggle).toHaveAttribute("aria-pressed", "true");
+		await toggle.click();
+		await expect(screens).toHaveCount(0);
+		await expect(
+			timeline.locator('[data-track="phone"] .timeline-bar'),
+		).toBeVisible();
+		await page.reload();
+		await expect(toggle).toHaveAttribute("aria-pressed", "false");
+		await expect(screens).toHaveCount(0);
+		await toggle.click();
+		await expect(screens.first()).toBeVisible();
+
 		// The action of the phone is under the step, with the screenshot after it.
 		const actions = page.getByRole("navigation", { name: "Actions" });
 		await expect(

@@ -8,7 +8,7 @@ through adapters.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./docs/images/trace-dark.png">
-  <img alt="The trace of a test of the coin laundry example on CI: the web, an iOS simulator and a fake washer on one timeline, with the screen of the app on the phone" src="./docs/images/trace-light.png">
+  <img alt="The traces of the tests of the coin laundry example on CI: the list of the tests, and the web, an iOS simulator and a fake washer of one test on one timeline, with the screens of the devices while they ran and the screen of the app on the phone" src="./docs/images/trace-light.png">
 </picture>
 
 The trace of [`examples/laundry`](./examples/laundry) on CI: a test pays and starts a wash on an iOS simulator, the
