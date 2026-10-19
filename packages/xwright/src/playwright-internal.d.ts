@@ -20,6 +20,9 @@ declare module "playwright/lib/common" {
 
 	export interface FullConfigInternal {
 		readonly configDir: string;
+		readonly projects: {
+			readonly project: { readonly name: string; readonly use: object };
+		}[];
 	}
 
 	export const configLoader: {

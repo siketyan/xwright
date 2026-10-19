@@ -4,8 +4,12 @@ The official adapter of [Xwright](https://github.com/siketyan/xwright#readme) fo
 
 ```sh
 npm install --save-dev xwright @xwright/playwright
-npx playwright install chromium
+npx xwright install
 ```
+
+`xwright install` installs the browsers the devices use, by their `browserName` or the `channel` of
+`launchOptions`, with the Playwright the adapter pins. Arguments after `--` go to `playwright install`, such as
+`npx xwright install -- --with-deps` for the system dependencies on Linux.
 
 ## Usage
 

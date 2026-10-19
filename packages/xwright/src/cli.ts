@@ -3,7 +3,9 @@ import { existsSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import {
 	EXPORT_USAGE,
+	INSTALL_USAGE,
 	parseExportArgs,
+	parseInstallArgs,
 	parseShowArgs,
 	parseTestArgs,
 	SHOW_USAGE,
@@ -11,6 +13,7 @@ import {
 	USAGE,
 	withoutUiArgs,
 } from "./args.js";
+import { installDevices } from "./install.js";
 import { openTraces, serveTrace, serveTraces } from "./trace/server.js";
 import { exportTrace as exportTraceTo, findTraces } from "./trace/zip.js";
 import { UiRunner } from "./ui/runner.js";
@@ -55,6 +58,26 @@ async function testUi(
 		process.once("SIGINT", stop);
 		process.once("SIGTERM", stop);
 	});
+}
+
+async function install(args: string[]): Promise<number> {
+	const parsed = parseInstallArgs(args);
+	if (parsed === "help") {
+		console.log(INSTALL_USAGE);
+		return 0;
+	}
+	// The configuration, as Playwright Test loads it, with the devices in `use` of its projects.
+	const { configLoader } = await import("playwright/lib/common");
+	const config = await configLoader.loadConfigFromFile(parsed.configFile);
+	await installDevices(
+		config.projects.map(({ project }) => ({
+			name: project.name,
+			use: project.use as Record<string, unknown>,
+		})),
+		parsed,
+		parsed.args,
+	);
+	return 0;
 }
 
 function exportTrace(args: string[]): number {
@@ -111,6 +134,8 @@ async function main(argv: string[]): Promise<number> {
 			return await test(args);
 		case "export-trace":
 			return exportTrace(args);
+		case "install":
+			return await install(args);
 		case "show-trace":
 			return await showTrace(args);
 		case undefined:

@@ -41,6 +41,18 @@ Install `xwright` and the adapters of the devices to drive:
 npm install --save-dev xwright @xwright/playwright @xwright/mobilewright
 ```
 
+Then install what the devices of `xwright.config.ts` need, such as the browsers of Playwright, through their adapters:
+
+```sh
+npx xwright install                                 # every device of the configuration
+npx xwright install --device web -- --with-deps     # the browsers, with their system dependencies on Linux
+npx xwright install --device phone -- -d <udid>     # the agent of Mobilewright on a device
+```
+
+Each adapter runs the CLI of the library it pins, so that the project needs no dependency on Playwright or
+Mobilewright of its own, and the browsers are the ones the adapter launches. The arguments after `--` go to the
+adapters of the devices taken, which `--device` and `--project` choose.
+
 ## Usage
 
 Declare the devices in the projects of `xwright.config.ts`. Any option of Playwright Test other than `use` and

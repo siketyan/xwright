@@ -7,6 +7,13 @@ The official adapter of [Xwright](https://github.com/siketyan/xwright#readme) fo
 npm install --save-dev xwright @xwright/mobilewright
 ```
 
+`xwright install` installs the agent of Mobilewright on a device, with the Mobilewright the adapter pins. Arguments
+after `--` go to `mobilewright install`, such as the ID of the device:
+
+```sh
+npx xwright install --device phone -- -d <udid>
+```
+
 ## Usage
 
 ```ts

@@ -1,5 +1,7 @@
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { MobilecliDriver } from "@mobilewright/driver-mobilecli";
-import { defineAdapter } from "@xwright/core";
+import { defineAdapter, runNodeCli } from "@xwright/core";
 import {
 	type AllocationHandle,
 	connectDevice,
@@ -117,6 +119,15 @@ export const mobilewright = defineAdapter<
 	{ url: string }
 >({
 	name: "@xwright/mobilewright",
+	async install({ args }) {
+		// The CLI of the Mobilewright the adapter pins, next to its entry point. It installs the agent of Mobilewright on
+		// the device of `-d <id>`.
+		const cli = join(
+			dirname(createRequire(import.meta.url).resolve("mobilewright")),
+			"cli.js",
+		);
+		await runNodeCli(cli, ["install", ...args]);
+	},
 	async createOnce({ options, config }) {
 		const url = await startDevicePool({
 			driver: options.driver ?? new MobilecliDriver(),

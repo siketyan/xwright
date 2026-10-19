@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
 	parseExportArgs,
+	parseInstallArgs,
 	parseShowArgs,
 	parseTestArgs,
 	resolveConfigFile,
@@ -146,5 +147,29 @@ describe("parseShowArgs", () => {
 	it("takes no path, or one", () => {
 		expect(parseShowArgs([], "/app")).toMatchObject({ path: undefined });
 		expect(() => parseShowArgs(["a", "b"], "/app")).toThrow(/one path/);
+	});
+});
+
+describe("parseInstallArgs", () => {
+	it("takes the projects and the devices, and the arguments after -- for the adapters", () => {
+		const cwd = withConfig();
+		expect(
+			parseInstallArgs(
+				["--project", "ios", "--device", "phone", "--", "-d", "udid"],
+				cwd,
+			),
+		).toEqual({
+			configFile: join(cwd, "xwright.config.ts"),
+			projects: ["ios"],
+			devices: ["phone"],
+			args: ["-d", "udid"],
+		});
+		expect(parseInstallArgs(["--help"], cwd)).toBe("help");
+	});
+
+	it("rejects an option of an adapter before --", () => {
+		expect(() => parseInstallArgs(["--with-deps"], withConfig())).toThrow(
+			/with-deps/,
+		);
 	});
 });

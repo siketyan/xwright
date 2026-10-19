@@ -4,12 +4,14 @@ export {
 	type AdapterOptions,
 	defineAdapter,
 	type HandleOf,
+	type InstallContext,
 	type Json,
 	type OnceContext,
 	type TestContext,
 	type WorkerContext,
 	type WorkerSlot,
 } from "./adapter.js";
+export { runNodeCli } from "./command.js";
 export {
 	addLibraryDirectory,
 	callerDirectory,

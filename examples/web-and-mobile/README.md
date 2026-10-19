@@ -5,7 +5,7 @@ setup serves the pages for the web on `http://localhost:3000` (`PORT` changes th
 Settings app.
 
 It needs an Android emulator or an iOS simulator that [Mobilewright](https://mobilewright.dev) can find
-(`npx mobilewright devices`), and the browsers of Playwright (`npx playwright install chromium`).
+(`npx mobilewright devices`), and the browsers of Playwright (`pnpm exec xwright install --device web`).
 
 ```sh
 pnpm test                    # every project

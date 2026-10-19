@@ -5,6 +5,7 @@ export type {
 	AdapterDefinition,
 	AdapterOptions,
 	HandleOf,
+	InstallContext,
 	Json,
 	OnceContext,
 	TestContext,
