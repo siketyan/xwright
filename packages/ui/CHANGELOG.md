@@ -1,5 +1,11 @@
 # @xwright/ui
 
+## 0.4.0
+
+### Minor Changes
+
+- [#51](https://github.com/siketyan/xwright/pull/51) [`6d8eaa0`](https://github.com/siketyan/xwright/commit/6d8eaa0ab985a84793f27d622bbd6df3bc7fc8ff) Thanks [@siketyan](https://github.com/siketyan)! - Show on the timeline the screens of each device while its actions ran, from its screencast or its screenshots, in place of the bars of the actions. The button "Screenshots" turns them back into bars, and the choice is remembered in the browser.
+
 ## 0.3.0
 
 ### Minor Changes

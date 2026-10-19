@@ -1,5 +1,12 @@
 # @xwright/mobilewright
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`9583933`](https://github.com/siketyan/xwright/commit/9583933ae0df9363d5b295d97965e574f334057c)]:
+  - xwright@0.4.0
+
 ## 0.2.0
 
 ### Minor Changes
