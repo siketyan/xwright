@@ -1,5 +1,11 @@
 # @xwright/ui
 
+## 0.3.0
+
+### Minor Changes
+
+- [#50](https://github.com/siketyan/xwright/pull/50) [`769f907`](https://github.com/siketyan/xwright/commit/769f9075105484671ca937e2aaaf56935de67fc2) Thanks [@siketyan](https://github.com/siketyan)! - `xwright show-trace` shows all the traces at the path, or in `test-results` by default, with the list of their tests and the filters of `xwright test --ui`. A ZIP file dropped with several traces, such as an artifact of CI, is listed the same way.
+
 ## 0.2.0
 
 ### Minor Changes

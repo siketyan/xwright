@@ -1,5 +1,17 @@
 # xwright
 
+## 0.3.0
+
+### Minor Changes
+
+- [#50](https://github.com/siketyan/xwright/pull/50) [`769f907`](https://github.com/siketyan/xwright/commit/769f9075105484671ca937e2aaaf56935de67fc2) Thanks [@siketyan](https://github.com/siketyan)! - `xwright show-trace` shows all the traces at the path, or in `test-results` by default, with the list of their tests and the filters of `xwright test --ui`. A ZIP file dropped with several traces, such as an artifact of CI, is listed the same way.
+
+### Patch Changes
+
+- [#49](https://github.com/siketyan/xwright/pull/49) [`1161e5e`](https://github.com/siketyan/xwright/commit/1161e5ea3191523fd0c9440ea4b66e9fc3b973bb) Thanks [@siketyan](https://github.com/siketyan)! - Keep the trace of a test that failed in `beforeAll`, which `xwright test --ui` showed as having no trace.
+- Updated dependencies [[`769f907`](https://github.com/siketyan/xwright/commit/769f9075105484671ca937e2aaaf56935de67fc2)]:
+  - @xwright/ui@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
