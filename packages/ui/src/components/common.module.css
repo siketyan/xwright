@@ -1,0 +1,43 @@
+.message {
+	padding: 16px;
+}
+
+.empty {
+	color: var(--muted);
+	padding: 8px;
+}
+
+.dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	margin-right: 6px;
+	flex: none;
+}
+
+.project {
+	color: var(--muted);
+}
+
+.error {
+	color: var(--error);
+}
+
+/* The colors of the statuses of tests, by their names in Playwright Test. */
+.passed {
+	color: #16a34a;
+}
+
+.failed,
+.timedOut {
+	color: var(--error);
+}
+
+.running {
+	color: var(--accent);
+}
+
+.none {
+	color: var(--muted);
+}

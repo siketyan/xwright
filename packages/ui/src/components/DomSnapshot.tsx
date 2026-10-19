@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { renderSnapshot, snapshotResources } from "../model/dom.ts";
 import type { Snapshot, Trace } from "../model/trace.ts";
+import styles from "./DomSnapshot.module.css";
 
 /** A DOM snapshot of Playwright, rendered in a sandboxed frame scaled to fit. */
 export function DomSnapshot({
@@ -56,7 +57,7 @@ export function DomSnapshot({
 	return (
 		<div
 			ref={container}
-			className="dom-snapshot"
+			className={styles.domSnapshot}
 			style={{ height: viewport.height * scale }}
 		>
 			{html !== undefined && (

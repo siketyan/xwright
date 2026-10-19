@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
 import { type TraceEntry, testsOf } from "../model/collection.ts";
 import { filterTests, isEmptyFilter, NO_FILTER } from "../model/runner.ts";
-import { Filters, LiveTrace, TestTree } from "./TestList.tsx";
+import common from "./common.module.css";
+import {
+	Filters,
+	LiveTrace,
+	TestCount,
+	TestsLayout,
+	TestTree,
+} from "./TestList.tsx";
 
 /** The tests of several traces, as `xwright test --ui` lists them, with the trace of the selected one. */
 export function TraceList({ entries }: { entries: TraceEntry[] }) {
@@ -18,32 +25,33 @@ export function TraceList({ entries }: { entries: TraceEntry[] }) {
 	const selected = entries.find((entry) => entry.id === selectedId);
 
 	return (
-		<div className="runner">
-			<aside className="tests" aria-label="Tests">
-				<Filters
-					tests={tests}
-					filter={filter}
-					onChange={setFilter}
-					notRun={false}
-				/>
-				<p className="test-count">
-					{isEmptyFilter(filter)
-						? `${tests.length} tests`
-						: `${visible.length} of ${tests.length} tests`}
-				</p>
-				<TestTree
-					tests={visible}
-					selectedId={selectedId}
-					onSelect={setSelectedId}
-				/>
-			</aside>
-			<section className="runner-trace">
-				{selected === undefined ? (
-					<p className="message">Select a test to see its trace.</p>
-				) : (
-					<LiveTrace key={selected.id} open={selected.open} />
-				)}
-			</section>
-		</div>
+		<TestsLayout
+			sidebar={
+				<>
+					<Filters
+						tests={tests}
+						filter={filter}
+						onChange={setFilter}
+						notRun={false}
+					/>
+					<TestCount
+						visible={visible.length}
+						total={tests.length}
+						filtered={!isEmptyFilter(filter)}
+					/>
+					<TestTree
+						tests={visible}
+						selectedId={selectedId}
+						onSelect={setSelectedId}
+					/>
+				</>
+			}
+		>
+			{selected === undefined ? (
+				<p className={common.message}>Select a test to see its trace.</p>
+			) : (
+				<LiveTrace key={selected.id} open={selected.open} />
+			)}
+		</TestsLayout>
 	);
 }

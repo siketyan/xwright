@@ -9,7 +9,15 @@ import {
 	type TestFilter,
 } from "../model/runner.ts";
 import { httpSource } from "../model/source.ts";
-import { Filters, LiveTrace, TestTree } from "./TestList.tsx";
+import common from "./common.module.css";
+import styles from "./Runner.module.css";
+import {
+	Filters,
+	LiveTrace,
+	TestCount,
+	TestsLayout,
+	TestTree,
+} from "./TestList.tsx";
 
 /** How often the state of the runner is read, in milliseconds. */
 const INTERVAL = 500;
@@ -60,81 +68,82 @@ export function Runner({ initial }: { initial: RunnerState }) {
 	};
 
 	return (
-		<div className="runner">
-			<aside className="tests" aria-label="Tests">
-				<div className="toolbar">
-					<button
-						type="button"
-						disabled={state.running}
-						onClick={() => {
-							setFollowing(true);
-							// With a filter, only the tests in the list.
-							run(filtered ? visible.map((test) => test.id) : undefined);
-						}}
-					>
-						▶ {filtered ? "Run filtered" : "Run all"}
-					</button>
-					<button
-						type="button"
-						disabled={!state.running}
-						onClick={() => command("stop")}
-					>
-						■ Stop
-					</button>
-					<button
-						type="button"
-						disabled={state.running}
-						onClick={() => command("list")}
-					>
-						↻ Reload
-					</button>
-				</div>
-				<Filters tests={state.tests} filter={filter} onChange={setFilter} />
-				<p className="test-count">
-					{filtered
-						? `${visible.length} of ${state.tests.length} tests`
-						: `${state.tests.length} tests`}
-				</p>
-				{state.errors.map((error) => (
-					<pre key={error} role="alert" className="error">
-						{error}
-					</pre>
-				))}
-				<TestTree
-					tests={visible}
-					selectedId={selectedId}
-					onSelect={(id) => {
-						setFollowing(false);
-						setSelectedId(id);
-					}}
-					run={{
-						disabled: state.running,
-						onRun: (id) => {
+		<TestsLayout
+			sidebar={
+				<>
+					<div className={styles.toolbar}>
+						<button
+							type="button"
+							disabled={state.running}
+							onClick={() => {
+								setFollowing(true);
+								// With a filter, only the tests in the list.
+								run(filtered ? visible.map((test) => test.id) : undefined);
+							}}
+						>
+							▶ {filtered ? "Run filtered" : "Run all"}
+						</button>
+						<button
+							type="button"
+							disabled={!state.running}
+							onClick={() => command("stop")}
+						>
+							■ Stop
+						</button>
+						<button
+							type="button"
+							disabled={state.running}
+							onClick={() => command("list")}
+						>
+							↻ Reload
+						</button>
+					</div>
+					<Filters tests={state.tests} filter={filter} onChange={setFilter} />
+					<TestCount
+						visible={visible.length}
+						total={state.tests.length}
+						filtered={filtered}
+					/>
+					{state.errors.map((error) => (
+						<pre key={error} role="alert" className={common.error}>
+							{error}
+						</pre>
+					))}
+					<TestTree
+						tests={visible}
+						selectedId={selectedId}
+						onSelect={(id) => {
 							setFollowing(false);
 							setSelectedId(id);
-							run([id]);
-						},
-					}}
-				/>
-			</aside>
-			<section className="runner-trace">
-				{selected === undefined ? (
-					<p className="message">Select a test to see its trace.</p>
-				) : selected.trace ? (
-					<LiveTrace
-						key={`${selected.id}:${selected.run}:${selected.retry}`}
-						open={async () => httpSource(`trace/${selected.id}/`)}
+						}}
+						run={{
+							disabled: state.running,
+							onRun: (id) => {
+								setFollowing(false);
+								setSelectedId(id);
+								run([id]);
+							},
+						}}
 					/>
-				) : (
-					<p className="message">
-						{selected.status === "running"
-							? "Waiting for the trace…"
-							: selected.status === undefined
-								? "Run the test to see its trace."
-								: "The test has no trace. A device records one by its trace mode."}
-					</p>
-				)}
-			</section>
-		</div>
+				</>
+			}
+		>
+			{selected === undefined ? (
+				<p className={common.message}>Select a test to see its trace.</p>
+			) : selected.trace ? (
+				<LiveTrace
+					key={`${selected.id}:${selected.run}:${selected.retry}`}
+					open={async () => httpSource(`trace/${selected.id}/`)}
+				/>
+			) : (
+				<p className={common.message}>
+					{selected.status === "running"
+						? "Waiting for the trace…"
+						: selected.status === undefined
+							? "Run the test to see its trace."
+							: "The test has no trace. A device records one by its trace mode."}
+				</p>
+			)}
+		</TestsLayout>
 	);
 }

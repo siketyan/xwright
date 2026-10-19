@@ -1,0 +1,27 @@
+/* A line of 1 pixel, as the borders between the panes, in a bar wide enough to grab. */
+.splitter {
+	margin: 0;
+	border: none;
+	background:
+		linear-gradient(var(--border), var(--border)) center / 1px 100% no-repeat;
+	touch-action: none;
+}
+
+.splitter:hover,
+.splitter:focus-visible {
+	background: var(--accent);
+	outline: none;
+}
+
+.vertical {
+	width: 5px;
+	height: auto;
+	cursor: col-resize;
+	align-self: stretch;
+}
+
+.horizontal {
+	height: 5px;
+	background-size: 100% 1px;
+	cursor: row-resize;
+}
