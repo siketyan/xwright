@@ -109,6 +109,18 @@ jobs:
           cache: false
           require-lockfile: true
       - name: Publish the packages and create the releases
+        id: publish
         uses: changesets/action/publish@v2.1.2
         with:
           pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
+      # GitHub marks the release created last as the latest, which can be any package, so the release of xwright is
+      # marked again.
+      - name: Mark the release of xwright as the latest
+        if: steps.publish.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="xwright@$(node -p 'require("./packages/xwright/package.json").version')"
+          if gh release view "$tag" > /dev/null; then
+            gh release edit "$tag" --latest
+          fi
