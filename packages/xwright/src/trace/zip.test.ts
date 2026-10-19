@@ -1,9 +1,16 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { crc32, inflateRawSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { findTraces, readZip, zipDirectory } from "./zip.js";
+import { exportTrace, findTraces, readZip, zipDirectory } from "./zip.js";
 
 /** Reads the entries of a ZIP archive through its central directory, checking their CRC-32. */
 function unzip(file: string): Record<string, string> {
@@ -54,6 +61,27 @@ describe("zipDirectory", () => {
 			"web.ndjson": '{"type":"before"}\n',
 			"web/resources/abc.png": "png",
 		});
+	});
+});
+
+describe("exportTrace", () => {
+	it("writes the trace into a ZIP file in place of its directory", () => {
+		const root = mkdtempSync(join(tmpdir(), "xwright-zip-"));
+		const trace = makeTrace(root, "test");
+		exportTrace(trace, `${trace}.zip`);
+		expect(existsSync(trace)).toBe(false);
+		expect(unzip(`${trace}.zip`)).toMatchObject({ "trace.json": "{}\n" });
+		// The output directory of the test is left, as Playwright's.
+		expect(readdirSync(join(root, "test"))).toEqual(["xwright-trace.zip"]);
+	});
+
+	it("refuses to write the ZIP file into the trace it deletes", () => {
+		const root = mkdtempSync(join(tmpdir(), "xwright-zip-"));
+		const trace = makeTrace(root, "test");
+		expect(() => exportTrace(trace, join(trace, "trace.zip"))).toThrow(
+			/is in the trace/,
+		);
+		expect(existsSync(join(trace, "trace.json"))).toBe(true);
 	});
 });
 

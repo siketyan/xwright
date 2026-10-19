@@ -17,8 +17,9 @@ Run "xwright <command> --help" for the options of a command.`;
 
 export const EXPORT_USAGE = `Usage: xwright export-trace [options] [path...]
 
-Writes each trace found under the paths into a ZIP file next to it, e.g. xwright-trace.zip. A path is a directory of
-a trace or a directory to search, such as the output directory of the tests. Defaults to test-results.
+Writes each trace found under the paths into a ZIP file next to it, e.g. xwright-trace.zip, and deletes the directory
+of the trace, as Playwright keeps its traces as ZIP files. A path is a directory of a trace or a directory to search,
+such as the output directory of the tests. Defaults to test-results.
 
 Options:
   -o, --output <file>  The ZIP file to write, when exactly one trace is found

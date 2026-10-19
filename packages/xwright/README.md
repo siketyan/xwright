@@ -34,7 +34,7 @@ test("signs in on the phone after signing up on the web", async () => {
   with the trace of each test as it runs.
 - `xwright show-trace [path]` shows the traces at the path, or in `test-results`, in the browser, with the list of
   their tests.
-- `xwright export-trace [path...]` writes the traces into ZIP files, to upload from CI.
+- `xwright export-trace [path...]` writes the traces into ZIP files in place of their directories, to upload from CI.
 
 The `tree` reporter (`reporter: [["tree"]]`) prints each test with its steps as a tree when the test ends, in a group
 of the log on GitHub Actions.

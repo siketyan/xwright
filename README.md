@@ -163,7 +163,8 @@ Without traces, it opens a ZIP file dropped on the page. A trace still being wri
 or one at a time, and shows the trace of each test as it runs. Each run is a new `xwright test` with the same arguments, so the changes to the tests are picked up.
 
 `xwright export-trace` writes each trace under `test-results` (or the paths given) into a ZIP file next to it, such as
-`xwright-trace.zip`, to upload from CI.
+`xwright-trace.zip`, to upload from CI, and deletes the directory of the trace. As with Playwright's `trace.zip`, each
+trace is then in one ZIP file, which `xwright show-trace` and the UI open.
 
 Events are appended as they happen, in the action model of Playwright's trace, with times of the monotonic clock of
 the host. The creation and the disposal of devices go to `xwright-worker-<index>` in the output directory of the
