@@ -112,26 +112,26 @@ See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete exampl
 
 ### Reporter
 
-The `tree` reporter of Xwright prints each test with its steps, the calls of the APIs and the assertions as a tree
-when the test ends, so that the output of tests running in parallel does not interleave. On GitHub Actions, the steps
-of each test are in a group of the log, with the errors after it. Statuses and errors are colored on a terminal and
-on GitHub Actions, unless `NO_COLOR` is set.
+The `tree` reporter of Xwright prints each test with the steps of `step()` as a tree when the test ends, so that the
+output of tests running in parallel does not interleave. The calls of the APIs and the assertions are shown only when
+they failed, or always with `showActions: true`. On GitHub Actions, the steps of each test are in a group of the log, with
+the errors after it. Statuses and errors are colored on a terminal and on GitHub Actions, unless `NO_COLOR` is set.
 
 ```ts
 export default defineConfig({
   reporter: [["tree"]],
+  // Or, to show every call and assertion:
+  // reporter: [["tree", { showActions: true }]],
 });
 ```
 
 ```text
 ✓ [android] › washing.spec.ts:12 › starts a wash on the app (21.0s)
-  ├─ Before Hooks (5.2s)
-  │  └─ device.launchApp() (4.8s)
   ├─ pay on the app (3.4s)
-  │  ├─ locator.tap() (612ms)
-  │  └─ expect.toBeVisible() (1.2s)
   └─ the cycle finishes (1.5s)
-     └─ expect.toBeVisible() (1.2s)
+✘ [web] › washing.spec.ts:30 › shows the wash on the dashboard (8.2s)
+  └─ ✘ see the wash (5.1s)
+     └─ ✘ expect.toBeVisible() (5.0s)
 ```
 
 It is also `--reporter tree` of `xwright test`, and can be used with the other reporters of Playwright Test.
