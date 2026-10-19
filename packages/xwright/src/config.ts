@@ -49,6 +49,16 @@ export interface ProjectOptions {
 	redact?: RedactOptions;
 }
 
+/** The reporters of Xwright by their names, which can be used as Playwright Test's built-in ones. */
+export const REPORTERS: Record<string, string> = {
+	tree: fileURLToPath(new URL("./reporters/tree.js", import.meta.url)),
+};
+
+/** The reporter of the name, the path of the module of one of Xwright, or the name as it is. */
+export function resolveReporterName(name: string): string {
+	return Object.hasOwn(REPORTERS, name) ? (REPORTERS[name] as string) : name;
+}
+
 /** The key of {@link ProjectOptions} in `use` of each Playwright Test project. */
 export const PROJECT_OPTIONS_KEY = "xwright";
 
@@ -61,7 +71,7 @@ export const PROJECT_OPTIONS_KEY = "xwright";
 export function defineConfig(
 	config: Config,
 ): PlaywrightTestConfig<object, { [PROJECT_OPTIONS_KEY]: ProjectOptions }> {
-	const { projects, globalSetup, redact, ...rest } = config;
+	const { projects, globalSetup, redact, reporter, ...rest } = config;
 	const ids = new Map<Adapter, string>();
 	const resolve = (device: DeviceConfig): ResolvedDevice => {
 		let id = ids.get(device.adapter);
@@ -74,6 +84,17 @@ export function defineConfig(
 
 	return {
 		...rest,
+		...(reporter === undefined
+			? {}
+			: {
+					reporter:
+						typeof reporter === "string"
+							? resolveReporterName(reporter)
+							: reporter.map(
+									([name, options]) =>
+										[resolveReporterName(name), options] as [string, unknown],
+								),
+				}),
 		globalSetup: [
 			fileURLToPath(new URL("./global-setup.js", import.meta.url)),
 			...(globalSetup === undefined ? [] : [globalSetup].flat()),

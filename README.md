@@ -91,6 +91,32 @@ that has all the devices it uses, and is skipped in the others.
 See [`examples/web-and-mobile`](./examples/web-and-mobile) for a complete example, and
 [`examples/laundry`](./examples/laundry) for an app tested on the web, a phone and a fake washer.
 
+### Reporter
+
+The `tree` reporter of Xwright prints each test with its steps, the calls of the APIs and the assertions as a tree
+when the test ends, so that the output of tests running in parallel does not interleave. On GitHub Actions, the steps
+of each test are in a group of the log, with the errors after it. Statuses and errors are colored on a terminal and
+on GitHub Actions, unless `NO_COLOR` is set.
+
+```ts
+export default defineConfig({
+  reporter: [["tree"]],
+});
+```
+
+```text
+✓ [android] › washing.spec.ts:12 › starts a wash on the app (21.0s)
+  ├─ Before Hooks (5.2s)
+  │  └─ device.launchApp() (4.8s)
+  ├─ pay on the app (3.4s)
+  │  ├─ locator.tap() (612ms)
+  │  └─ expect.toBeVisible() (1.2s)
+  └─ the cycle finishes (1.5s)
+     └─ expect.toBeVisible() (1.2s)
+```
+
+It is also `--reporter tree` of `xwright test`, and can be used with the other reporters of Playwright Test.
+
 ### Trace
 
 Set `trace` on a device to record what it did: `on`, `retain-on-failure` (kept only when the test failed),
