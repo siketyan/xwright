@@ -86,6 +86,8 @@ it("colors the statuses on GitHub Actions", async () => {
 	const output = await run({ GITHUB_ACTIONS: "true" });
 	expect(output).toContain("\u001b[32m  1 passed");
 	expect(output).toContain("\u001b[31m  1 failed\u001b[39m");
-	// The title of a group stays plain.
-	expect(output).toContain("::group::✓ [phone] › tree.e2e.ts:12 › signs in\n");
+	// The title of a group is colored too.
+	expect(output).toContain(
+		"::group::\u001b[32m✓\u001b[39m [phone] › tree.e2e.ts:12 › signs in",
+	);
 }, 60_000);

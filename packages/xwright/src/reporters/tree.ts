@@ -90,8 +90,8 @@ export default class TreeReporter implements Reporter {
 			}
 		}
 		if (this.github) {
-			// The header is the title of the group, which is plain text.
-			this.print(`::group::${stripAnsi(header)}`);
+			// The header is the title of the group, colored as the other lines of the log.
+			this.print(`::group::${header}`);
 			this.printLines(lines);
 			this.print("::endgroup::");
 		} else {
