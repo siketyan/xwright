@@ -124,9 +124,11 @@ it("keeps the secrets out of every file of the trace", async () => {
 	// The password typed, logged and sent, and the token of the response.
 	expect(all).not.toContain("correct horse battery staple");
 	expect(all).not.toContain("correct%20horse");
-	// A header named in the configuration is left out, though its value is in the source of the page.
-	expect(all).toMatch(/"X-Api-Key","value":"\[redacted\]"/);
-	expect(all).not.toMatch(/"X-Api-Key","value":"api-key-1234"/);
+	// A header named in the configuration is left out, though its value is in the source of the page. Chromium may
+	// report the names of the headers in lower case.
+	expect(all).toContain('"target":"https://xwright.test/api"');
+	expect(all).toMatch(/"X-Api-Key","value":"\[redacted\]"/i);
+	expect(all).not.toMatch(/"X-Api-Key","value":"api-key-1234"/i);
 	expect(all).not.toMatch(/token-\d+/);
 	expect(all).toContain("[redacted]");
 	// The test ran, and its output is still there without the secrets.
