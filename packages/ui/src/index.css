@@ -136,12 +136,32 @@ header h1 {
 	transform: translateX(-50%);
 }
 
-.timeline-frame {
+.timeline-filmstrip {
+	height: 52px;
+}
+
+.timeline-thumb {
 	position: absolute;
 	top: 2px;
-	height: 24px;
-	opacity: 0.5;
+	height: 48px;
+	object-fit: contain;
+	border: 1px solid var(--border);
+	border-radius: 2px;
+	background: var(--panel);
 	pointer-events: none;
+}
+
+.timeline-toggle {
+	font-size: 11px;
+	padding: 0 6px;
+	border: 1px solid var(--border);
+	border-radius: 4px;
+	color: var(--muted);
+}
+
+.timeline-toggle[aria-pressed="true"] {
+	color: var(--fg);
+	background: var(--selected);
 }
 
 .timeline-bar {

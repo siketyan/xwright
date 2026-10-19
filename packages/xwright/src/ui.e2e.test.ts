@@ -130,6 +130,19 @@ it("shows the actions, the screen and the details of a trace", async () => {
 		await expect(timeline.getByText("test", { exact: true })).toBeVisible();
 		await expect(timeline.getByText("phone", { exact: true })).toBeVisible();
 
+		// The screenshots of the phone are on the timeline, until they are turned off, which is remembered.
+		const filmstrip = timeline.locator('[data-filmstrip="phone"]');
+		const toggle = timeline.getByRole("button", { name: "Screenshots" });
+		await expect(filmstrip.locator("img").first()).toBeVisible();
+		await expect(toggle).toHaveAttribute("aria-pressed", "true");
+		await toggle.click();
+		await expect(filmstrip).toBeHidden();
+		await page.reload();
+		await expect(toggle).toHaveAttribute("aria-pressed", "false");
+		await expect(filmstrip).toBeHidden();
+		await toggle.click();
+		await expect(filmstrip.locator("img").first()).toBeVisible();
+
 		// The action of the phone is under the step, with the screenshot after it.
 		const actions = page.getByRole("navigation", { name: "Actions" });
 		await expect(

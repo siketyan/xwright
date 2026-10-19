@@ -130,7 +130,7 @@ export interface Resource {
 	response?: unknown;
 }
 
-/** A frame of the screencast of a device, for the filmstrip of the timeline. */
+/** A frame of the screencast of a device, or a screenshot, for the filmstrip of the timeline. */
 export interface ScreencastFrame {
 	track: string;
 	time: number;
@@ -170,6 +170,8 @@ export interface Trace {
 	messages: Message[];
 	resources: Resource[];
 	screencast: ScreencastFrame[];
+	/** The screenshots of the devices, for the filmstrip of a device without a screencast. */
+	screenshots: ScreencastFrame[];
 	output: Output[];
 	errors: { message: string; stack?: string }[];
 	/** The times the trace starts and ends at, in milliseconds of the monotonic clock of the host. */
@@ -202,6 +204,7 @@ export function parseTrace(
 		messages: [],
 		resources: [],
 		screencast: [],
+		screenshots: [],
 		output: [],
 		errors: [],
 		startTime: Number.POSITIVE_INFINITY,
@@ -297,6 +300,13 @@ export function parseTrace(
 					withAction(snapshot.callId, (action) => {
 						action.snapshots.push(snapshot);
 					});
+					if (event.type === "screenshot" && snapshot.file !== undefined) {
+						trace.screenshots.push({
+							track,
+							time: snapshot.time,
+							file: snapshot.file,
+						});
+					}
 					break;
 				}
 				case "screencast-frame":
@@ -371,6 +381,7 @@ export function parseTrace(
 	trace.messages.sort((a, b) => a.time - b.time);
 	trace.resources.sort(byStart);
 	trace.screencast.sort((a, b) => a.time - b.time);
+	trace.screenshots.sort((a, b) => a.time - b.time);
 	if (trace.startTime > trace.endTime) {
 		trace.startTime = meta.clock.monotonicTime;
 		trace.endTime = meta.clock.monotonicTime;

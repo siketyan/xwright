@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatDuration, previewOf } from "./select.ts";
+import {
+	filmstripFrames,
+	formatDuration,
+	framesAt,
+	previewOf,
+} from "./select.ts";
 import { parseTrace, type TraceMeta } from "./trace.ts";
 
 const meta: TraceMeta = {
@@ -99,5 +104,70 @@ describe("formatDuration", () => {
 			formatDuration(1500),
 			formatDuration(undefined),
 		]).toEqual(["12ms", "1.5s", "—"]);
+	});
+});
+
+describe("filmstripFrames", () => {
+	it("takes the screencast of a device, or its screenshots without one", () => {
+		const trace = parseTrace(
+			{
+				...meta,
+				devices: [
+					...meta.devices,
+					{ name: "phone", adapter: "fake", file: "phone.ndjson", trace: "on" },
+				],
+			},
+			[
+				{
+					name: "web",
+					events: [
+						{ type: "screencast-frame", timestamp: 2, file: "web/frame.jpeg" },
+						{ type: "screenshot", time: 1, file: "web/shot.png" },
+					],
+				},
+				{
+					name: "phone",
+					events: [
+						{ type: "screenshot", time: 3, file: "phone/b.png" },
+						{ type: "screenshot", time: 1, file: "phone/a.png" },
+					],
+				},
+			],
+		);
+		expect(filmstripFrames(trace, "web").map((frame) => frame.file)).toEqual([
+			"web/frame.jpeg",
+		]);
+		expect(filmstripFrames(trace, "phone").map((frame) => frame.file)).toEqual([
+			"phone/a.png",
+			"phone/b.png",
+		]);
+	});
+});
+
+describe("framesAt", () => {
+	const frames = [
+		{ track: "phone", time: 10, file: "a" },
+		{ track: "phone", time: 50, file: "b" },
+		{ track: "phone", time: 90, file: "c" },
+	];
+
+	it("shows the last frame up to each time, or the first before any", () => {
+		// The times are 10, 30, 50, 70 and 90.
+		expect(framesAt(frames, 0, 100, 5).map((frame) => frame.file)).toEqual([
+			"a",
+			"a",
+			"b",
+			"b",
+			"c",
+		]);
+		expect(framesAt(frames, 0, 10, 2).map((frame) => frame.file)).toEqual([
+			"a",
+			"a",
+		]);
+	});
+
+	it("shows nothing without frames or slots", () => {
+		expect(framesAt([], 0, 100, 5)).toEqual([]);
+		expect(framesAt(frames, 0, 100, 0)).toEqual([]);
 	});
 });
