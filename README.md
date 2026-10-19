@@ -1,4 +1,9 @@
-# Xwright
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/images/logo-dark.svg">
+    <img alt="Xwright" src="./docs/images/logo.svg" height="64">
+  </picture>
+</h1>
 
 Xwright (pronounced "cross-wright") is an end-to-end testing framework that drives the web, mobile and other devices
 from a single test, and records what every device did on one timeline.
