@@ -1,6 +1,6 @@
 {
 	"name": "@xwright/appium",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Official Appium adapter for Xwright",
 	"license": "Apache-2.0",
 	"repository": {

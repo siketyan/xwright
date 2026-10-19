@@ -1,5 +1,17 @@
 # @xwright/ui
 
+## 0.5.0
+
+### Minor Changes
+
+- [#59](https://github.com/siketyan/xwright/pull/59) [`62e128e`](https://github.com/siketyan/xwright/commit/62e128e775f7d155e1de0659ccbf71c6f27b20d6) Thanks [@siketyan](https://github.com/siketyan)! - Follow the actions as they come in the list of a test running, unless the list was scrolled up. The actions under a step start collapsed, so that the steps are seen first, and the steps above an action selected on the timeline are expanded to show it.
+
+- [#57](https://github.com/siketyan/xwright/pull/57) [`c7f4439`](https://github.com/siketyan/xwright/commit/c7f4439e323bbf4eca178d22a50f446089f0c6c4) Thanks [@siketyan](https://github.com/siketyan)! - Resize the panes of the UI by dragging the bars between them, or with the arrow keys: the list of the tests, the list of the actions and the tabs. The sizes are remembered in the browser. The list of the actions and the tabs start smaller.
+
+### Patch Changes
+
+- [#58](https://github.com/siketyan/xwright/pull/58) [`86d6210`](https://github.com/siketyan/xwright/commit/86d621077bead6c2fcba8cebbc0004e2a5226e3f) Thanks [@siketyan](https://github.com/siketyan)! - Show the logo of Xwright as the favicon of the UI
+
 ## 0.4.0
 
 ### Minor Changes

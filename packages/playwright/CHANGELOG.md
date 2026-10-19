@@ -1,5 +1,21 @@
 # @xwright/playwright
 
+## 0.2.0
+
+### Minor Changes
+
+- [#60](https://github.com/siketyan/xwright/pull/60) [`addfb37`](https://github.com/siketyan/xwright/commit/addfb37dbdfc81ae0e667ecb600bfa7ec8835041) Thanks [@siketyan](https://github.com/siketyan)! - Export the types of Playwright, Mobilewright and WebdriverIO that tests use most, such as `Locator` and `Page`, so that the tests need no dependency on them of their own.
+
+- [#61](https://github.com/siketyan/xwright/pull/61) [`53b1cd7`](https://github.com/siketyan/xwright/commit/53b1cd72338af27327865e6a734dc026388c929f) Thanks [@siketyan](https://github.com/siketyan)! - Add `xwright install`, which installs what the devices of the configuration need through their adapters, so that a project needs no dependency on Playwright or Mobilewright of its own: the browsers of Playwright, by the `browserName` or the `channel` of the devices, and the agent of Mobilewright on a device. The arguments after `--` go to the adapters of the devices taken by `--device` and `--project`, such as `--with-deps` or `-d <udid>`. An adapter installs with the new `install` hook of `@xwright/core`.
+
+### Patch Changes
+
+- [#54](https://github.com/siketyan/xwright/pull/54) [`06aa11e`](https://github.com/siketyan/xwright/commit/06aa11eab5cafcdf95964c92507f994435370bbc) Thanks [@siketyan](https://github.com/siketyan)! - Move the adapter SDK, `defineAdapter` and the types of the tracer, to `@xwright/core`. The official adapters depend on it instead of `xwright`, so that they are not released with every release of `xwright`. `xwright` still exports the same.
+
+- [#45](https://github.com/siketyan/xwright/pull/45) [`c1d54d8`](https://github.com/siketyan/xwright/commit/c1d54d89b3e9f3d84bdb6507da5f201cfc78c1ae) Thanks [@siketyan](https://github.com/siketyan)! - Keep the network entry of a request finished at the end of a test in the trace.
+- Updated dependencies [[`06aa11e`](https://github.com/siketyan/xwright/commit/06aa11eab5cafcdf95964c92507f994435370bbc), [`53b1cd7`](https://github.com/siketyan/xwright/commit/53b1cd72338af27327865e6a734dc026388c929f)]:
+  - @xwright/core@0.1.0
+
 ## 0.1.3
 
 ### Patch Changes
