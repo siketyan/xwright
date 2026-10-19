@@ -169,8 +169,7 @@ indices 0.
 - `mobilewright(options)` borrows a device from Mobilewright's device pool for each file, installs `installApps` once
   per device, and relaunches `bundleId` before each test. It takes the options of Mobilewright, such as `platform`
   and `driver`. The handle is `{ device, screen, expect }`. When traced, each operation such as a tap is an action,
-  with the commands of the driver under it and a screenshot after it (`screenshots`), and the view hierarchy is
-  recorded when a test failed (`viewTree`).
+  with a screenshot after it (`screenshots`), and the view hierarchy is recorded when a test failed (`viewTree`).
 
 ### Adapters
 

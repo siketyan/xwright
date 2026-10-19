@@ -17,7 +17,7 @@ function track(results: string, test: string): Record<string, unknown>[] {
 		.map((line) => JSON.parse(line));
 }
 
-it("records the operations of Mobilewright with the commands of the driver", async () => {
+it("records the operations of Mobilewright, without the commands of the driver", async () => {
 	const results = fileURLToPath(new URL("test-results/", fixture));
 	await rm(results, { recursive: true, force: true });
 	const { report } = await runFixture(fixture);
@@ -36,13 +36,15 @@ it("records the operations of Mobilewright with the commands of the driver", asy
 			}),
 		],
 	});
+	// The commands the driver sent for the tap are not actions.
 	expect(
-		events
-			.filter(
-				(event) => event.type === "before" && event.parentId === tap?.callId,
-			)
-			.map((event) => event.title),
-	).toEqual(["getViewHierarchy", "getViewHierarchy", "tap"]);
+		events.filter(
+			(event) => event.type === "before" && event.parentId === tap?.callId,
+		),
+	).toEqual([]);
+	expect(
+		events.some((event) => event.type === "before" && event.class === "Driver"),
+	).toBe(false);
 	expect(events).toContainEqual(
 		expect.objectContaining({
 			type: "screenshot",

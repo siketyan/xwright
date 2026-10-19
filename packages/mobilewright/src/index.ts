@@ -15,7 +15,7 @@ import {
 } from "mobilewright";
 import { defineAdapter } from "xwright";
 import { startDevicePool, stopDevicePool } from "./device-pool.js";
-import { createStepFn, type ScreenshotPhase, traceDriver } from "./trace.js";
+import { createStepFn, type ScreenshotPhase } from "./trace.js";
 
 export type { ScreenshotPhase };
 
@@ -69,7 +69,7 @@ export class MobilewrightHandle {
 	_allocation: AllocationHandle | undefined;
 	/** @internal */
 	_device: Device | undefined;
-	/** @internal The driver as is, to take screenshots without recording them as commands. */
+	/** @internal */
 	_driver: MobilewrightDriver | undefined;
 
 	/** The device borrowed for the file. */
@@ -92,8 +92,8 @@ export class MobilewrightHandle {
  * A device is borrowed from Mobilewright's device pool for each file, and the app is relaunched before each test.
  *
  * When the device is traced, each operation of Mobilewright, such as a tap or an assertion, is an action on its
- * track, with the commands the driver sent under it and a screenshot after it, and the view hierarchy is recorded
- * when a test failed.
+ * track, with a screenshot after it, and the view hierarchy is recorded when a test failed. The commands the driver
+ * sends for an operation, such as reading the view hierarchy while an assertion waits, are not recorded.
  *
  * ```ts
  * devices: { phone: { adapter: mobilewright({ platform: "android", bundleId: "com.example.app" }) } }
@@ -141,7 +141,7 @@ export const mobilewright = defineAdapter<
 			platform: allocation.platform,
 			deviceId: allocation.deviceId,
 			deviceType: allocation.type,
-			driver: traceDriver(handle._driver as MobilewrightDriver, trace),
+			driver: handle._driver,
 			timeout: options.connectTimeout,
 			actionTimeout: options.actionTimeout,
 			expectTimeout: options.expectTimeout,

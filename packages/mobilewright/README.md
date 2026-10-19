@@ -61,7 +61,8 @@ device, and the app of `bundleId` is relaunched before each test.
 
 The handle that `use()` returns is `{ device, screen, expect }`.
 
-When the device is traced, each operation such as a tap is an action, with the commands of the driver under it.
+When the device is traced, each operation such as a tap is an action, with a screenshot after it. The commands the
+driver sends for an operation, such as reading the view hierarchy while an assertion waits, are left out.
 
 ## License
 
