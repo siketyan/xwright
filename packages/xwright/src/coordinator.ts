@@ -1,7 +1,12 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import type { FullConfig } from "playwright/test";
-import type { Adapter, Json } from "./adapter.js";
+import {
+	type Adapter,
+	type Json,
+	RUNNER_SLOT,
+	resolveOptions,
+} from "./adapter.js";
 
 /** The environment variable that tells workers the URL of the coordinator. */
 export const COORDINATOR_URL_ENV = "XWRIGHT_COORDINATOR_URL";
@@ -70,7 +75,7 @@ export class Coordinator {
 			}
 			result = (async () =>
 				(await adapter.definition.createOnce?.({
-					options: adapter.options,
+					options: resolveOptions(adapter.options, RUNNER_SLOT),
 					config: this.config,
 				})) ?? null)();
 			this.results.set(id, result);
@@ -101,7 +106,7 @@ export class Coordinator {
 			}
 			try {
 				await adapter.definition.disposeOnce?.(shared.value as never, {
-					options: adapter.options,
+					options: resolveOptions(adapter.options, RUNNER_SLOT),
 					config: this.config,
 				});
 			} catch (error) {

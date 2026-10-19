@@ -6,6 +6,7 @@ import type {
 	TestContext,
 	WorkerContext,
 } from "./adapter.js";
+import { resolveOptions } from "./adapter.js";
 import type { ResolvedDevice } from "./config.js";
 import { requestShared } from "./coordinator.js";
 import { deleteTarget, setTarget } from "./runtime.js";
@@ -178,7 +179,10 @@ export class WorkerSession {
 			const definition = adapter.definition;
 			const context: WorkerContext<unknown, Json> = {
 				name,
-				options: adapter.options,
+				options: resolveOptions(adapter.options, {
+					parallelIndex: this.workerInfo.parallelIndex,
+					workerIndex: this.workerInfo.workerIndex,
+				}),
 				shared: null,
 				trace: this.traces.tracer(name),
 				workerInfo: this.workerInfo,
