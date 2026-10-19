@@ -1,7 +1,8 @@
 import { mkdtempSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { defineAdapter, type Tracer } from "@xwright/core";
+import { dirname, join } from "node:path";
+import { defineAdapter, runNodeCli, type Tracer } from "@xwright/core";
 import {
 	type Browser,
 	type BrowserContext,
@@ -14,6 +15,22 @@ import {
 } from "playwright";
 import { expect } from "playwright/test";
 import { ApiCallRecorder, LiveTraceConverter } from "./trace.js";
+
+/**
+ * The browsers to install for the options of the devices: the channel of each, such as `chrome`, or its browser.
+ */
+export function browsersToInstall(
+	options: (PlaywrightOptions | undefined)[],
+): string[] {
+	return [
+		...new Set(
+			options.map(
+				(option) =>
+					option?.launchOptions?.channel ?? option?.browserName ?? "chromium",
+			),
+		),
+	].sort();
+}
 
 /** The options of {@link playwright}. */
 export interface PlaywrightOptions extends BrowserContextOptions {
@@ -147,6 +164,16 @@ export const playwright = defineAdapter<
 	PlaywrightHandle
 >({
 	name: "@xwright/playwright",
+	async install({ options, args }) {
+		// The CLI of the Playwright the adapter pins, so that the browsers are the ones it launches.
+		const cli = join(
+			dirname(
+				createRequire(import.meta.url).resolve("playwright/package.json"),
+			),
+			"cli.js",
+		);
+		await runNodeCli(cli, ["install", ...args, ...browsersToInstall(options)]);
+	},
 	async create({ options = {}, trace }) {
 		const handle = new PlaywrightHandle();
 		handle._recorder = new ApiCallRecorder(trace);

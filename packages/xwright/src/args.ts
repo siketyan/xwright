@@ -10,6 +10,7 @@ export const USAGE = `Usage: xwright <command> [options]
 
 Commands:
   test [test-filter...]   Run the tests
+  install [-- args...]    Install what the devices need, such as the browsers, through their adapters
   export-trace [path...]  Write the traces under the paths, or test-results, into ZIP files for CI
   show-trace [path]       Show the traces at the path, or in test-results, in the browser
 
@@ -36,6 +37,57 @@ Options:
   --host <host>  The host to listen on. Defaults to 127.0.0.1
   --port <port>  The port to listen on. Defaults to a free one
   -h, --help     Display help`;
+
+export const INSTALL_USAGE = `Usage: xwright install [options] [-- args...]
+
+Installs what the devices of the configuration need before the tests, such as the browsers of Playwright or the agent
+of Mobilewright on a device, through their adapters. The arguments after -- go to the adapters, such as --with-deps
+for Playwright, so that a project needs no dependency on Playwright or Mobilewright of its own.
+
+Options:
+  -c, --config <file>  Configuration file, or a directory with xwright.config.*
+  --project <name...>  Only the devices of the projects
+  --device <name...>   Only the devices of the names in the configuration, e.g. web
+  -h, --help           Display help
+
+Examples:
+  xwright install --device web -- --with-deps
+  xwright install --project ios --device phone -- -d <udid>`;
+
+/** What `xwright install` does. */
+export interface InstallCommand {
+	configFile: string;
+	projects: string[];
+	devices: string[];
+	args: string[];
+}
+
+/** Parses the arguments of `xwright install`. */
+export function parseInstallArgs(
+	args: string[],
+	cwd = process.cwd(),
+): InstallCommand | "help" {
+	const separator = args.indexOf("--");
+	const own = separator === -1 ? args : args.slice(0, separator);
+	const { values } = parseArgs({
+		args: own,
+		options: {
+			config: { type: "string", short: "c" },
+			project: { type: "string", multiple: true },
+			device: { type: "string", multiple: true },
+			help: { type: "boolean", short: "h" },
+		},
+	});
+	if (values.help) {
+		return "help";
+	}
+	return {
+		configFile: resolveConfigFile(values.config, cwd),
+		projects: values.project ?? [],
+		devices: values.device ?? [],
+		args: separator === -1 ? [] : args.slice(separator + 1),
+	};
+}
 
 /** What `xwright show-trace` does. */
 export interface ShowCommand {

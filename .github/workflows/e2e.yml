@@ -56,7 +56,7 @@ jobs:
       - name: Build the server of the example
         run: pnpm --filter example-laundry build
       - name: Install Chromium
-        run: pnpm --filter @xwright/playwright exec playwright install ${{ runner.os == 'Linux' && '--with-deps' || '' }} chromium
+        run: pnpm --filter example-laundry exec xwright install --device web -- ${{ runner.os == 'Linux' && '--with-deps' || '' }}
       # The emulator needs about 7.5 GB for its data partition, and the build of the app a few more. The NDK is kept to
       # build the app.
       - name: Free disk space
@@ -137,7 +137,7 @@ jobs:
           xcrun simctl launch "$udid" dev.xwright.example.laundry
           xcrun simctl terminate "$udid" dev.xwright.example.laundry
           # Mobilewright fails to install its agent by itself when the agent is missing, so it is installed here.
-          pnpm --filter @xwright/mobilewright exec mobilewright install -d "$udid"
+          pnpm --filter example-laundry exec xwright install --project ios --device phone -- -d "$udid"
       - name: Run the example on the web, an iOS simulator and a fake washer
         if: matrix.platform == 'ios'
         run: pnpm --filter example-laundry test $PROJECTS

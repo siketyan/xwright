@@ -40,6 +40,14 @@ export interface OnceContext<Options> {
 	config: FullConfig;
 }
 
+/** The context of {@link AdapterDefinition.install}. */
+export interface InstallContext<Options> {
+	/** The options of each device with the adapter, made for the indices 0, such as to know the browsers to install. */
+	options: Options[];
+	/** The arguments given to `xwright install` after `--`, such as `--with-deps`. */
+	args: string[];
+}
+
 /** The context of the hooks that run in a worker. */
 export interface WorkerContext<Options, Shared extends Json> {
 	/** The name of the device in the configuration, e.g. `phone`. */
@@ -72,6 +80,11 @@ export interface AdapterDefinition<
 > {
 	/** The ID of the adapter, such as its package name. */
 	name: string;
+	/**
+	 * Installs what the device needs before the tests, such as a browser or an agent on a device, for
+	 * `xwright install`. Called once for the adapter, with the options of all its devices.
+	 */
+	install?(ctx: InstallContext<Options>): void | Promise<void>;
 	/**
 	 * Called once in the whole run, in the runner's process, only when a test that will run uses the device. The
 	 * return value is passed to every worker as `shared`, such as the URL of a coordinator of a device pool.
