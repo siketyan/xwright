@@ -26,7 +26,10 @@ Android through Mobilewright, and takes any other device through adapters writte
 
 ## Architecture
 
-- `packages/xwright` — `xwright`: the CLI, the runner over Playwright Test, `use()`, `step()` and the adapter SDK.
+- `packages/core` — `@xwright/core`: the adapter SDK, `defineAdapter` and the types of the tracer. The adapters depend
+  on it instead of `xwright`, so that they are not released with every release of `xwright`.
+- `packages/xwright` — `xwright`: the CLI, the runner over Playwright Test, `use()` and `step()`. It re-exports the
+  adapter SDK.
 - `packages/playwright` — `@xwright/playwright`: the official adapter for the web.
 - `packages/mobilewright` — `@xwright/mobilewright`: the official adapter for iOS and Android.
 - `packages/ui` — `@xwright/ui`: the UI that shows the traces, a React app built with Vite.

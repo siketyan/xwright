@@ -9,6 +9,6 @@
 		}
 	},
 	"dependencies": {
-		"xwright": "workspace:*"
+		"@xwright/core": "workspace:^"
 	}
 }

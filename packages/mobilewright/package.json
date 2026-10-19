@@ -23,8 +23,11 @@
 	],
 	"dependencies": {
 		"@mobilewright/driver-mobilecli": "0.0.66",
+		"@xwright/core": "workspace:^",
 		"mobilewright": "0.0.66",
-		"playwright": "1.63.0",
+		"playwright": "1.63.0"
+	},
+	"devDependencies": {
 		"xwright": "workspace:*"
 	}
 }

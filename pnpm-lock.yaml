@@ -224,9 +224,9 @@ importers:
 
   examples/laundry/fake-washer:
     dependencies:
-      xwright:
-        specifier: workspace:*
-        version: link:../../../packages/xwright
+      '@xwright/core':
+        specifier: workspace:^
+        version: link:../../../packages/core
 
   examples/laundry/web:
     dependencies:
@@ -259,26 +259,40 @@ importers:
         specifier: workspace:*
         version: link:../../packages/xwright
 
+  packages/core:
+    devDependencies:
+      playwright:
+        specifier: 1.63.0
+        version: 1.63.0
+
   packages/mobilewright:
     dependencies:
       '@mobilewright/driver-mobilecli':
         specifier: 0.0.66
         version: 0.0.66(supports-color@8.1.1)
+      '@xwright/core':
+        specifier: workspace:^
+        version: link:../core
       mobilewright:
         specifier: 0.0.66
         version: 0.0.66(supports-color@8.1.1)
       playwright:
         specifier: 1.63.0
         version: 1.63.0
+    devDependencies:
       xwright:
         specifier: workspace:*
         version: link:../xwright
 
   packages/playwright:
     dependencies:
+      '@xwright/core':
+        specifier: workspace:^
+        version: link:../core
       playwright:
         specifier: 1.63.0
         version: 1.63.0
+    devDependencies:
       xwright:
         specifier: workspace:*
         version: link:../xwright
@@ -306,6 +320,9 @@ importers:
 
   packages/xwright:
     dependencies:
+      '@xwright/core':
+        specifier: workspace:^
+        version: link:../core
       '@xwright/ui':
         specifier: workspace:*
         version: link:../ui

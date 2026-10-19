@@ -1,3 +1,14 @@
+export type {
+	ActionMeta,
+	ActionSpan,
+	EndOptions,
+	InputEvent,
+	LogEvent,
+	ResourceEvent,
+	SnapshotEvent,
+	StackFrame,
+	Tracer,
+} from "@xwright/core";
 export {
 	type Adapter,
 	type AdapterDefinition,
@@ -20,15 +31,4 @@ export {
 export { type StepOptions, step } from "./step.js";
 export { test, type XwrightFixtures } from "./test.js";
 export { type RedactOptions, secret } from "./trace/redact.js";
-export type {
-	ActionMeta,
-	ActionSpan,
-	EndOptions,
-	InputEvent,
-	LogEvent,
-	ResourceEvent,
-	SnapshotEvent,
-	StackFrame,
-	Tracer,
-} from "./trace.js";
 export { type Devices, use } from "./use.js";
