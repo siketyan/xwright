@@ -1,5 +1,22 @@
 # xwright
 
+## 0.5.0
+
+### Minor Changes
+
+- [#56](https://github.com/siketyan/xwright/pull/56) [`90b4957`](https://github.com/siketyan/xwright/commit/90b49572eb6ea665542accf0bb3a259e02ba2d8a) Thanks [@siketyan](https://github.com/siketyan)! - `xwright export-trace` deletes the directory of each trace after writing its ZIP file, so that each trace is in one ZIP file, as Playwright's `trace.zip`. A ZIP file of the output directory of the tests no longer has each trace twice. `xwright show-trace` without a path also finds the exported traces in `test-results`.
+
+- [#62](https://github.com/siketyan/xwright/pull/62) [`5fc1a1c`](https://github.com/siketyan/xwright/commit/5fc1a1c5928aa8f6b3b46d0eb4fd98dafacdf353) Thanks [@siketyan](https://github.com/siketyan)! - The `tree` reporter shows only the steps of `step()` by default, with the calls and assertions under them only when they failed; `["tree", { showActions: true }]` shows all of them
+
+- [#61](https://github.com/siketyan/xwright/pull/61) [`53b1cd7`](https://github.com/siketyan/xwright/commit/53b1cd72338af27327865e6a734dc026388c929f) Thanks [@siketyan](https://github.com/siketyan)! - Add `xwright install`, which installs what the devices of the configuration need through their adapters, so that a project needs no dependency on Playwright or Mobilewright of its own: the browsers of Playwright, by the `browserName` or the `channel` of the devices, and the agent of Mobilewright on a device. The arguments after `--` go to the adapters of the devices taken by `--device` and `--project`, such as `--with-deps` or `-d <udid>`. An adapter installs with the new `install` hook of `@xwright/core`.
+
+### Patch Changes
+
+- [#54](https://github.com/siketyan/xwright/pull/54) [`06aa11e`](https://github.com/siketyan/xwright/commit/06aa11eab5cafcdf95964c92507f994435370bbc) Thanks [@siketyan](https://github.com/siketyan)! - Move the adapter SDK, `defineAdapter` and the types of the tracer, to `@xwright/core`. The official adapters depend on it instead of `xwright`, so that they are not released with every release of `xwright`. `xwright` still exports the same.
+- Updated dependencies [[`62e128e`](https://github.com/siketyan/xwright/commit/62e128e775f7d155e1de0659ccbf71c6f27b20d6), [`06aa11e`](https://github.com/siketyan/xwright/commit/06aa11eab5cafcdf95964c92507f994435370bbc), [`c7f4439`](https://github.com/siketyan/xwright/commit/c7f4439e323bbf4eca178d22a50f446089f0c6c4), [`86d6210`](https://github.com/siketyan/xwright/commit/86d621077bead6c2fcba8cebbc0004e2a5226e3f), [`53b1cd7`](https://github.com/siketyan/xwright/commit/53b1cd72338af27327865e6a734dc026388c929f)]:
+  - @xwright/ui@0.5.0
+  - @xwright/core@0.1.0
+
 ## 0.4.0
 
 ### Minor Changes
