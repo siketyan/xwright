@@ -1,5 +1,11 @@
 # @xwright/mobilewright
 
+## 0.3.1
+
+### Patch Changes
+
+- [#64](https://github.com/siketyan/xwright/pull/64) [`c294dca`](https://github.com/siketyan/xwright/commit/c294dca7343ad89fe31cd61aae8defbdb7af3feb) Thanks [@siketyan](https://github.com/siketyan)! - Update Mobilewright to 0.0.67
+
 ## 0.3.0
 
 ### Minor Changes
