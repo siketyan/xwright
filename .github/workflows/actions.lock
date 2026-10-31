@@ -5,17 +5,17 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/ci.yml':
         - 'actions/checkout@v7.0.1'
-        - 'pnpm/setup@v3.1.1'
+        - 'pnpm/setup@v3.1.2'
     '.github/workflows/e2e.yml':
         - 'actions/cache@v6.1.0'
         - 'actions/checkout@v7.0.1'
         - 'actions/upload-artifact@v7.0.2'
-        - 'pnpm/setup@v3.1.1'
+        - 'pnpm/setup@v3.1.2'
         - 'reactivecircus/android-emulator-runner@v2.38.0'
     '.github/workflows/release.yml':
         - 'actions/checkout@v7.0.1'
         - 'changesets/action@v2.1.2'
-        - 'pnpm/setup@v3.1.1'
+        - 'pnpm/setup@v3.1.2'
 dependencies:
     'actions/cache@v6.1.0':
         ref: 'v6.1.0'
@@ -37,9 +37,9 @@ dependencies:
         commit: 'sha1-ae32849d5ba541f9ae29e40e22a623bc13562f51'
         owner_id: 51163350
         repo_id: 202093906
-    'pnpm/setup@v3.1.1':
-        ref: 'v3.1.1'
-        commit: 'sha1-a0881977cd8ea73b1ed212236c99ca10dcc80cf4'
+    'pnpm/setup@v3.1.2':
+        ref: 'v3.1.2'
+        commit: 'sha1-fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e'
         owner_id: 21320719
         repo_id: 1235693694
     'reactivecircus/android-emulator-runner@v2.38.0':
