@@ -9,3 +9,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    groups:
+      # Mobilewright pins Playwright, so bump them together.
+      mobilewright:
+        patterns:
+          - mobilewright
+          - "@mobilewright/*"
+          - playwright
