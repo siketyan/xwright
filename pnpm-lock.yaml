@@ -278,8 +278,8 @@ importers:
   packages/core:
     devDependencies:
       playwright:
-        specifier: 1.63.0
-        version: 1.63.0
+        specifier: 1.65.0
+        version: 1.65.0
 
   packages/mobilewright:
     dependencies:
@@ -293,8 +293,8 @@ importers:
         specifier: 0.0.68
         version: 0.0.68(supports-color@8.1.1)
       playwright:
-        specifier: 1.63.0
-        version: 1.63.0
+        specifier: 1.65.0
+        version: 1.65.0
     devDependencies:
       xwright:
         specifier: workspace:*
@@ -306,8 +306,8 @@ importers:
         specifier: workspace:^
         version: link:../core
       playwright:
-        specifier: 1.63.0
-        version: 1.63.0
+        specifier: 1.65.0
+        version: 1.65.0
     devDependencies:
       xwright:
         specifier: workspace:*
@@ -343,8 +343,8 @@ importers:
         specifier: workspace:*
         version: link:../ui
       playwright:
-        specifier: 1.63.0
-        version: 1.63.0
+        specifier: 1.65.0
+        version: 1.65.0
 
 packages:
 
@@ -3391,8 +3391,18 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
+  playwright-core@1.65.0:
+    resolution: {integrity: sha512-vNSKgH6YqtN7cdT/L334zo0a+YwkrpicyrHJlWWPIm/Q+Nn2SWInil01oT0mbu96U4GgoRtCYQD9CzJQgju+lA==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   playwright@1.63.0:
     resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.65.0:
+    resolution: {integrity: sha512-F3AMWcR44qMBt4kq+6Kb6mX7bjGXshktKFOPULd7reED6ZJWevjbNRqysP7q+AATE9kdPEZBibex1BYsvpVoeA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -7493,9 +7503,15 @@ snapshots:
 
   playwright-core@1.63.0: {}
 
+  playwright-core@1.65.0: {}
+
   playwright@1.63.0:
     dependencies:
       playwright-core: 1.63.0
+
+  playwright@1.65.0:
+    dependencies:
+      playwright-core: 1.65.0
 
   plist@3.1.1:
     dependencies:
