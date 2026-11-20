@@ -22,9 +22,9 @@
 		"dist"
 	],
 	"dependencies": {
-		"@mobilewright/driver-mobilecli": "0.0.68",
+		"@mobilewright/driver-mobilecli": "0.0.69",
 		"@xwright/core": "workspace:^",
-		"mobilewright": "0.0.68",
+		"mobilewright": "0.0.69",
 		"playwright": "1.63.0"
 	},
 	"devDependencies": {

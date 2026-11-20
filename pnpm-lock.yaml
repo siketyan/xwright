@@ -284,14 +284,14 @@ importers:
   packages/mobilewright:
     dependencies:
       '@mobilewright/driver-mobilecli':
-        specifier: 0.0.68
-        version: 0.0.68(supports-color@8.1.1)
+        specifier: 0.0.69
+        version: 0.0.69(supports-color@8.1.1)
       '@xwright/core':
         specifier: workspace:^
         version: link:../core
       mobilewright:
-        specifier: 0.0.68
-        version: 0.0.68(supports-color@8.1.1)
+        specifier: 0.0.69
+        version: 0.0.69(supports-color@8.1.1)
       playwright:
         specifier: 1.63.0
         version: 1.63.0
@@ -1266,54 +1266,54 @@ packages:
     resolution: {integrity: sha512-6QEf6yqFbETdwGITKq57aYoPfX/3K8XFNwsAlx0C1M7o8cb79sv1M3w+tWuWvIcSbNqrLF7OD7YpZMVVz335hQ==}
     engines: {node: '>=20.0.0'}
 
-  '@mobilenext/mobilecli-darwin-amd64@1.0.22':
-    resolution: {integrity: sha512-pBqr7VOlRbLiCrfOoT52YafyzrBui6LpOxHvcHZ02s9jnMZeXv1Q9DfzuluATEtF8iAaMxNv2b+cINz1baF/gw==}
+  '@mobilenext/mobilecli-darwin-amd64@1.0.23':
+    resolution: {integrity: sha512-XZP1oyxYPIe5nS1T0xjpdKIrTHBjvHeN+WwslWlQAdZRgWuVt4QDHVbmAOrs8EN0YrcPLbNzsmRYH/hSrC5/Sw==}
     cpu: [x64]
     os: [darwin]
 
-  '@mobilenext/mobilecli-darwin-arm64@1.0.22':
-    resolution: {integrity: sha512-vaaNWFDkkEXNDFqUUteI3/vpoL47CelZV0DxLfobVmV07lFtX0Bum5GXexTiDMuJkbI14Fqy8XTQmMaaMC/8Nw==}
+  '@mobilenext/mobilecli-darwin-arm64@1.0.23':
+    resolution: {integrity: sha512-3IlJfFqD+xEdWjCof9UrTIsPJiWSMd3A1Kf6UmO+EuTY61Chd1aw1eI4bSgtRCWjM65Qo8sNPh0QBQUKNcI7Ag==}
     cpu: [arm64]
     os: [darwin]
 
-  '@mobilenext/mobilecli-linux-amd64@1.0.22':
-    resolution: {integrity: sha512-qZLcUBWDaaIhxBufokHyjVAVAEDRzycujKvDeiVairDZdV2vomlELL+JBM0SBZD8EQmp3V/m/923kZy2Kt2PmA==}
+  '@mobilenext/mobilecli-linux-amd64@1.0.23':
+    resolution: {integrity: sha512-nIwtx1v1cDLXXsUHX2KzJiUY1f5vd0b/Pzt9wIcKucREUEDX9fBfadXLhB3gF37lAMvd/+fzZ19+v7kCPUZQ+w==}
     cpu: [x64]
     os: [linux, android]
 
-  '@mobilenext/mobilecli-linux-arm64@1.0.22':
-    resolution: {integrity: sha512-1ShLaENyqm9NzDszJKUj1WbhGMVYWyWX6veuYwf+BJgYI3Om9YsQnpq+4B1OA4czyT38isUxc2djFGbEZyjk6g==}
+  '@mobilenext/mobilecli-linux-arm64@1.0.23':
+    resolution: {integrity: sha512-aAyGT0/94UAs7rRC30vzpfLruVtpqYYVc/kwoNyez1mxrXGc8Wir5tWGCkiv42A1dc9QvN4gw6IgEJrY2s9hgQ==}
     cpu: [arm64]
     os: [linux, android]
 
-  '@mobilenext/mobilecli-windows-amd64@1.0.22':
-    resolution: {integrity: sha512-E2Ipgn6KXFG7QDn2i8655IK5GvjgnUQkyDThNmPCS5tTXG3qJ6M/Jp5dAXK2YuR+kCiXUrb5u2hcyKFPDcgCnw==}
+  '@mobilenext/mobilecli-windows-amd64@1.0.23':
+    resolution: {integrity: sha512-n1PbH/1t58UZ+raMrk+BhUIbVbRqVuGCe/ALtltwHsL2TqsdK44JtnyqtFQaOAze07/s0ykhsX5sTIV1BhX4UA==}
     cpu: [x64]
     os: [win32]
 
-  '@mobilenext/mobilecli-windows-arm64@1.0.22':
-    resolution: {integrity: sha512-PX1yv69o94hoikmn42+IRQhBtj6v7iQOqR9AX+PXJFEuM0C9IbpuqRcGbWc1KLO5eR4+Y/4eX5xXDBQReBMNaQ==}
+  '@mobilenext/mobilecli-windows-arm64@1.0.23':
+    resolution: {integrity: sha512-sB7vRsc6jIazABxf6rB1z7YeNGm9WnRUEtiLRDNj9OdNXkYI22Ne37vkdpuRWbL5YsqYHs0tRnwEZC2iWEJVyQ==}
     cpu: [arm64]
     os: [win32]
 
-  '@mobilewright/core@0.0.68':
-    resolution: {integrity: sha512-SdXZ0yEeJuD3xQcmVI1KADULywPyFhA1FJvuoGoMJjZf9n0mjLEAd9MSc8HaCgOjBDa+LxL4NjDmjPzyiLa3Mw==}
+  '@mobilewright/core@0.0.69':
+    resolution: {integrity: sha512-xuTNapEsJyhFwTXV+df3ks13q1MREyxJ5aZplymvuOFlTamAzn4Wz8WeZm8kqVBeVHOcwLjnmSW2KYVhrRluDA==}
     engines: {node: '>=22.12.0'}
 
-  '@mobilewright/driver-mobilecli@0.0.68':
-    resolution: {integrity: sha512-LN01kiZDRxXhScwh0/y28EeZsVycXsocwIWlKhKQCJk0mqzrdTSCN8siEUzoNVOLkGhHc323eUAHDSnv48UjHg==}
+  '@mobilewright/driver-mobilecli@0.0.69':
+    resolution: {integrity: sha512-q/SWQKKxG+EmX2dl9HY0aoIeTiDhBsqPKexf7889j/WbXC8Zou7UYWImkSAc9kNUAJF5sLLJUNZ75YK+WUIsSQ==}
     engines: {node: '>=22.12.0'}
 
-  '@mobilewright/driver-mobilenext@0.0.68':
-    resolution: {integrity: sha512-/y+TWmnO3Sv6uqKqR6+AHjVbgVbyl8k99LvP62vrMTeAm8OsjB57rY1QwOMt5g+Q5Vm1AXJj/Aq+8P++Igxnkw==}
+  '@mobilewright/driver-mobilenext@0.0.69':
+    resolution: {integrity: sha512-7sD5FWQSBJ4k7Q8WRKInTBAiXbNWdyuCzaoKoin+7CGzj6UWI1Yiht3Q5hnWFu417wBq0WJ6vBizKjoUG4M/+g==}
     engines: {node: '>=22.12.0'}
 
-  '@mobilewright/inspector@0.0.68':
-    resolution: {integrity: sha512-JKqsWLEBNI8nyAk8rlHfTPT0m/UdY3lQnrWxcPlDv1ipHcJ8VPFGMzprIRbYiCyFz+nwXYcYDDcs+v2gO/8anQ==}
+  '@mobilewright/inspector@0.0.69':
+    resolution: {integrity: sha512-ULpuB5dFQ5bixlfbpfXMWBIpVavDjAHDv7RG+Buh4r942BUyw9LqPSQIWbGCXY4S6ou1/pLq6YrHlUXtm/clIw==}
     engines: {node: '>=22.12.0'}
 
-  '@mobilewright/protocol@0.0.68':
-    resolution: {integrity: sha512-XB31jiXQAXDQR8Z9CA9Zrddg1mtvvNNCdch7MFaWxUzbDGQ5+HAdfqDWZmTZxfcDq6rM8nVSAOQcHoHMY5pPPw==}
+  '@mobilewright/protocol@0.0.69':
+    resolution: {integrity: sha512-a+wSztqDXfQxsCrUkFpTr/IB7EF9cr3bcqlUsbcuG8cVIyQAokQ0ANdWKBMajl2sbqka5D6bFawydl0x0tov+A==}
     engines: {node: '>=22.12.0'}
 
   '@next/env@16.4.6':
@@ -3192,12 +3192,12 @@ packages:
   mitt@3.0.1:
     resolution: {integrity: sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==}
 
-  mobilecli@1.0.22:
-    resolution: {integrity: sha512-8qLJeAlniDEXxgcp8JJREd+rc6suo3Jz2D+wjTtItEl2YIALZV9CMHafW67mt8vhuZUdPUkISMZWeQf+dNTm8w==}
+  mobilecli@1.0.23:
+    resolution: {integrity: sha512-GD312puD7Vsfa/puwvYRF76+UdKgXYn+crxyCGkXwCjDVRw2rXKIIWBzdI+b6PKOg8BtWQw6BRgR7BMa3hMGLg==}
     hasBin: true
 
-  mobilewright@0.0.68:
-    resolution: {integrity: sha512-e0duy3Gsan0upaIn0ZsEcnz6WIL9ngwBbuj7/osAg0otJzxydXm1jJY4qUFV+fJGgFZCfPW+CH2eUI2QCCaCyA==}
+  mobilewright@0.0.69:
+    resolution: {integrity: sha512-6I/y5tUnYbEBjgmbhon10A9B3p5cXLd6pgvs2eeLm/o6JOos190oPRvO6HcwiGcdpctABCM+k7WRqYygTuTBZw==}
     engines: {node: '>=22.12.0'}
     hasBin: true
 
@@ -5380,46 +5380,46 @@ snapshots:
       tinyglobby: 0.2.17
       yaml: 2.9.1
 
-  '@mobilenext/mobilecli-darwin-amd64@1.0.22':
+  '@mobilenext/mobilecli-darwin-amd64@1.0.23':
     optional: true
 
-  '@mobilenext/mobilecli-darwin-arm64@1.0.22':
+  '@mobilenext/mobilecli-darwin-arm64@1.0.23':
     optional: true
 
-  '@mobilenext/mobilecli-linux-amd64@1.0.22':
+  '@mobilenext/mobilecli-linux-amd64@1.0.23':
     optional: true
 
-  '@mobilenext/mobilecli-linux-arm64@1.0.22':
+  '@mobilenext/mobilecli-linux-arm64@1.0.23':
     optional: true
 
-  '@mobilenext/mobilecli-windows-amd64@1.0.22':
+  '@mobilenext/mobilecli-windows-amd64@1.0.23':
     optional: true
 
-  '@mobilenext/mobilecli-windows-arm64@1.0.22':
+  '@mobilenext/mobilecli-windows-arm64@1.0.23':
     optional: true
 
-  '@mobilewright/core@0.0.68(supports-color@8.1.1)':
+  '@mobilewright/core@0.0.69(supports-color@8.1.1)':
     dependencies:
-      '@mobilewright/protocol': 0.0.68
+      '@mobilewright/protocol': 0.0.69
       debug: 4.4.3(supports-color@8.1.1)
       playwright-core: 1.63.0
     transitivePeerDependencies:
       - supports-color
 
-  '@mobilewright/driver-mobilecli@0.0.68(supports-color@8.1.1)':
+  '@mobilewright/driver-mobilecli@0.0.69(supports-color@8.1.1)':
     dependencies:
-      '@mobilewright/protocol': 0.0.68
+      '@mobilewright/protocol': 0.0.69
       debug: 4.4.3(supports-color@8.1.1)
-      mobilecli: 1.0.22
+      mobilecli: 1.0.23
       ws: 8.22.0
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
 
-  '@mobilewright/driver-mobilenext@0.0.68(supports-color@8.1.1)':
+  '@mobilewright/driver-mobilenext@0.0.69(supports-color@8.1.1)':
     dependencies:
-      '@mobilewright/protocol': 0.0.68
+      '@mobilewright/protocol': 0.0.69
       debug: 4.4.3(supports-color@8.1.1)
       ws: 8.22.0
     transitivePeerDependencies:
@@ -5427,16 +5427,16 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@mobilewright/inspector@0.0.68(supports-color@8.1.1)':
+  '@mobilewright/inspector@0.0.69(supports-color@8.1.1)':
     dependencies:
-      '@mobilewright/core': 0.0.68(supports-color@8.1.1)
-      '@mobilewright/protocol': 0.0.68
+      '@mobilewright/core': 0.0.69(supports-color@8.1.1)
+      '@mobilewright/protocol': 0.0.69
       express: 5.3.0(supports-color@8.1.1)
       open: 10.2.0
     transitivePeerDependencies:
       - supports-color
 
-  '@mobilewright/protocol@0.0.68': {}
+  '@mobilewright/protocol@0.0.69': {}
 
   '@next/env@16.4.6': {}
 
@@ -7284,22 +7284,22 @@ snapshots:
 
   mitt@3.0.1: {}
 
-  mobilecli@1.0.22:
+  mobilecli@1.0.23:
     optionalDependencies:
-      '@mobilenext/mobilecli-darwin-amd64': 1.0.22
-      '@mobilenext/mobilecli-darwin-arm64': 1.0.22
-      '@mobilenext/mobilecli-linux-amd64': 1.0.22
-      '@mobilenext/mobilecli-linux-arm64': 1.0.22
-      '@mobilenext/mobilecli-windows-amd64': 1.0.22
-      '@mobilenext/mobilecli-windows-arm64': 1.0.22
+      '@mobilenext/mobilecli-darwin-amd64': 1.0.23
+      '@mobilenext/mobilecli-darwin-arm64': 1.0.23
+      '@mobilenext/mobilecli-linux-amd64': 1.0.23
+      '@mobilenext/mobilecli-linux-arm64': 1.0.23
+      '@mobilenext/mobilecli-windows-amd64': 1.0.23
+      '@mobilenext/mobilecli-windows-arm64': 1.0.23
 
-  mobilewright@0.0.68(supports-color@8.1.1):
+  mobilewright@0.0.69(supports-color@8.1.1):
     dependencies:
-      '@mobilewright/core': 0.0.68(supports-color@8.1.1)
-      '@mobilewright/driver-mobilecli': 0.0.68(supports-color@8.1.1)
-      '@mobilewright/driver-mobilenext': 0.0.68(supports-color@8.1.1)
-      '@mobilewright/inspector': 0.0.68(supports-color@8.1.1)
-      '@mobilewright/protocol': 0.0.68
+      '@mobilewright/core': 0.0.69(supports-color@8.1.1)
+      '@mobilewright/driver-mobilecli': 0.0.69(supports-color@8.1.1)
+      '@mobilewright/driver-mobilenext': 0.0.69(supports-color@8.1.1)
+      '@mobilewright/inspector': 0.0.69(supports-color@8.1.1)
+      '@mobilewright/protocol': 0.0.69
       commander: 15.0.0
       debug: 4.4.3(supports-color@8.1.1)
       open: 10.2.0
